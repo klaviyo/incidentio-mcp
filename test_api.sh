@@ -3,7 +3,7 @@
 # Source environment variables
 export INCIDENT_IO_API_KEY=***REMOVED***
 
-echo "Testing Incident.io API connection..."
+echo "Testing incident.io API connection..."
 
 # Test API connection with curl
 curl -H "Authorization: Bearer $INCIDENT_IO_API_KEY" \
