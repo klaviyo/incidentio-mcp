@@ -38,7 +38,10 @@
       "Bash(diff:*)",
       "Bash(mv:*)",
       "Bash(rg:*)",
-      "Bash(./start-mcp-server.sh:*)"
+      "Bash(./start-mcp-server.sh:*)",
+      "Bash(git push:*)",
+      "Bash(./test_api.sh:*)",
+      "Bash(git add:*)"
     ],
     "deny": []
   },

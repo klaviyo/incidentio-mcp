@@ -2,6 +2,7 @@ package incidentio
 
 import (
 	"bytes"
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -36,6 +37,11 @@ func NewClient() (*Client, error) {
 	return &Client{
 		httpClient: &http.Client{
 			Timeout: 30 * time.Second,
+			Transport: &http.Transport{
+				TLSClientConfig: &tls.Config{
+					MinVersion: tls.VersionTLS12,
+				},
+			},
 		},
 		baseURL: baseURL,
 		apiKey:  apiKey,

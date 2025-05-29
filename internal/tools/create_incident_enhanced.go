@@ -78,6 +78,11 @@ func (t *CreateIncidentEnhancedTool) Execute(args map[string]interface{}) (strin
 		return "", fmt.Errorf("name parameter is required")
 	}
 
+	// Validate name input
+	if err := ValidateStringInput(name, "name", MaxNameLength, true); err != nil {
+		return "", err
+	}
+
 	// Generate idempotency key using timestamp and name
 	idempotencyKey := fmt.Sprintf("mcp-%d-%s", time.Now().UnixNano(), name)
 
@@ -93,6 +98,9 @@ func (t *CreateIncidentEnhancedTool) Execute(args map[string]interface{}) (strin
 
 	// Set provided values first
 	if summary, ok := args["summary"].(string); ok {
+		if err := ValidateStringInput(summary, "summary", MaxSummaryLength, false); err != nil {
+			return "", err
+		}
 		req.Summary = summary
 	}
 	if statusID, ok := args["incident_status_id"].(string); ok {

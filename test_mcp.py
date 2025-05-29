@@ -32,7 +32,11 @@ def test_mcp_server():
     """Test the MCP server functionality"""
     # Set environment variable
     env = os.environ.copy()
-    env["INCIDENT_IO_API_KEY"] = "***REMOVED***"
+    # Ensure API key is set from environment
+    if "INCIDENT_IO_API_KEY" not in env:
+        print("Error: INCIDENT_IO_API_KEY environment variable is not set")
+        print("Please set it before running tests")
+        return
     
     # Start the MCP server
     try:

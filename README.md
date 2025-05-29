@@ -51,12 +51,20 @@ make build
 ### Prerequisites
 
 - Go 1.21 or higher
-- incident.io API key (set as `INCIDENT_IO_API_KEY` environment variable)
+- incident.io API key (get from [incident.io settings](https://app.incident.io/settings/api-keys))
 
 ### Installation
 
 1. Clone the repository
-2. Install dependencies:
+2. Create a `.env` file from the example:
+   ```bash
+   cp .env.example .env
+   ```
+3. Add your incident.io API key to the `.env` file:
+   ```
+   INCIDENT_IO_API_KEY=your_api_key_here
+   ```
+4. Install dependencies:
    ```bash
    make deps
    ```
@@ -206,10 +214,78 @@ Add to your Claude configuration:
 
 After updating the configuration, restart Claude to load the incident.io tools.
 
+## 📝 Example Claude Prompts
+
+Here are some example prompts you can use with Claude once the MCP server is configured:
+
+### Incident Management
+
+```
+"Show me all active incidents"
+"List incidents with severity critical"
+"Create a new incident called 'Database performance degradation' with severity high"
+"Update incident INC-123 to resolved status"
+"What's the status of our most recent incident?"
+"Show me all incidents from the last 24 hours"
+```
+
+### Incident Details & Updates
+
+```
+"Get details for incident 01JWBYRW71PR0NEFAKARNQMZ5F"
+"Add an update to incident INC-45 saying 'Identified root cause as memory leak'"
+"Show me the timeline for our latest incident"
+"Who is assigned as incident lead for INC-123?"
+```
+
+### Severity & Status Management
+
+```
+"What severity levels are available?"
+"List all incident statuses we can use"
+"Show me incidents that are in triage status"
+"What's the difference between our severity levels?"
+```
+
+### User & Role Management
+
+```
+"List all available incident roles"
+"Find users with email domain @company.com"
+"Assign John Doe as incident lead for INC-123"
+"Who can I assign to incident roles?"
+"Search for user with email john.doe@company.com"
+```
+
+### Alerts & Alert Management
+
+```
+"Show me all firing alerts"
+"List alerts for incident INC-123"
+"Get details for alert alert_01ABC123"
+"Show me alerts that triggered in the last hour"
+```
+
+### Complex Workflows
+
+```
+"Create a high severity incident for payment processing issues, assign me as lead, and add an initial update"
+"Show me all critical incidents from this week and their current status"
+"Find all incidents affecting the payments team"
+"Close incident INC-123 with a final update about the resolution"
+```
+
+### Best Practices for Prompts
+
+1. **Be specific with IDs**: When referencing specific incidents, use either the ID (01JWBY...) or reference (INC-123)
+2. **Combine actions**: You can ask Claude to perform multiple related actions in one prompt
+3. **Use natural language**: The MCP server understands context, so write naturally
+4. **Ask for summaries**: Claude can analyze and summarize incident patterns and trends
+
 ## Environment Variables
 
 - `INCIDENT_IO_API_KEY` (required) - Your incident.io API key
-- `INCIDENT_IO_BASE_URL` (optional) - Override the API base URL (defaults to https://api.incident.io/v2)
+- `INCIDENT_IO_BASE_URL` (optional) - Custom API endpoint (defaults to https://api.incident.io/v2)
 
 ## 🧪 Testing
 
