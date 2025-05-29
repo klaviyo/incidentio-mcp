@@ -26,8 +26,8 @@ func (t *ListIncidentTypesTool) Description() string {
 
 func (t *ListIncidentTypesTool) InputSchema() map[string]interface{} {
 	return map[string]interface{}{
-		"type":       "object",
-		"properties": map[string]interface{}{},
+		"type":                 "object",
+		"properties":           map[string]interface{}{},
 		"additionalProperties": false,
 	}
 }
@@ -40,7 +40,7 @@ func (t *ListIncidentTypesTool) Execute(args map[string]interface{}) (string, er
 
 	// Format the output to be more readable
 	output := fmt.Sprintf("Found %d incident types:\n\n", len(result.IncidentTypes))
-	
+
 	for _, incidentType := range result.IncidentTypes {
 		output += fmt.Sprintf("ID: %s\n", incidentType.ID)
 		output += fmt.Sprintf("Name: %s\n", incidentType.Name)

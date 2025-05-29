@@ -26,7 +26,7 @@ func (c *Client) ListActions(opts *ListActionsOptions) (*ListActionsResponse, er
 	allActions := []Action{}
 	pageSize := 250 // Use max page size
 	after := ""
-	
+
 	// Set up base parameters
 	baseParams := url.Values{}
 	if opts != nil {
@@ -37,7 +37,7 @@ func (c *Client) ListActions(opts *ListActionsOptions) (*ListActionsResponse, er
 			baseParams.Add("status", status)
 		}
 	}
-	
+
 	// Paginate through all results
 	maxPages := 10 // Safety limit
 	for page := 0; page < maxPages; page++ {
@@ -46,7 +46,7 @@ func (c *Client) ListActions(opts *ListActionsOptions) (*ListActionsResponse, er
 		for k, v := range baseParams {
 			params[k] = v
 		}
-		
+
 		params.Set("page_size", strconv.Itoa(pageSize))
 		if after != "" {
 			params.Set("after", after)
@@ -63,14 +63,14 @@ func (c *Client) ListActions(opts *ListActionsOptions) (*ListActionsResponse, er
 		}
 
 		allActions = append(allActions, response.Actions...)
-		
+
 		// Check if there are more pages
 		if response.PaginationMeta.After == "" || len(response.Actions) == 0 {
 			break
 		}
 		after = response.PaginationMeta.After
 	}
-	
+
 	// Return combined results
 	return &ListActionsResponse{
 		Actions: allActions,

@@ -59,7 +59,7 @@ func (c *Client) DoRequest(method, path string, params url.Values, body interfac
 
 func (c *Client) doRequest(method, path string, params url.Values, body interface{}) ([]byte, error) {
 	endpoint := c.baseURL + path
-	
+
 	if params != nil && len(params) > 0 {
 		endpoint += "?" + params.Encode()
 	}
@@ -76,13 +76,6 @@ func (c *Client) doRequest(method, path string, params url.Values, body interfac
 	req, err := http.NewRequest(method, endpoint, reqBody)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
-	}
-	
-	// Debug log the request
-	fmt.Fprintf(os.Stderr, "[DEBUG] API Request: %s %s\n", method, endpoint)
-	if body != nil {
-		bodyBytes, _ := json.Marshal(body)
-		fmt.Fprintf(os.Stderr, "[DEBUG] Request Body: %s\n", string(bodyBytes))
 	}
 
 	req.Header.Set("Authorization", "Bearer "+c.apiKey)
@@ -101,7 +94,6 @@ func (c *Client) doRequest(method, path string, params url.Values, body interfac
 	}
 
 	if resp.StatusCode >= 400 {
-		fmt.Fprintf(os.Stderr, "[DEBUG] API Error Response: %d %s\n", resp.StatusCode, string(respBody))
 		var errorResp ErrorResponse
 		if err := json.Unmarshal(respBody, &errorResp); err != nil {
 			return nil, fmt.Errorf("HTTP %d: %s", resp.StatusCode, string(respBody))

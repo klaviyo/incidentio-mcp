@@ -65,33 +65,33 @@ func TestListAlertRoutes(t *testing.T) {
 				DoFunc: func(req *http.Request) (*http.Response, error) {
 					assertEqual(t, "GET", req.Method)
 					assertEqual(t, "Bearer test-api-key", req.Header.Get("Authorization"))
-					
+
 					if tt.params != nil && tt.params.PageSize > 0 {
 						assertEqual(t, "10", req.URL.Query().Get("page_size"))
 					}
-					
+
 					return mockResponse(tt.mockStatusCode, tt.mockResponse), nil
 				},
 			}
-			
+
 			client := NewTestClient(mockClient)
 			result, err := client.ListAlertRoutes(tt.params)
-			
+
 			if tt.wantError {
 				assertError(t, err)
 				return
 			}
-			
+
 			assertNoError(t, err)
 			if len(result.AlertRoutes) != tt.expectedCount {
 				t.Errorf("expected %d alert routes, got %d", tt.expectedCount, len(result.AlertRoutes))
 			}
-			
+
 			if tt.expectedCount > 0 {
 				route := result.AlertRoutes[0]
 				assertEqual(t, "ar_123", route.ID)
 				assertEqual(t, "Critical Alerts Route", route.Name)
-				
+
 				// Verify conditions
 				if len(route.Conditions) != 1 {
 					t.Errorf("expected 1 condition, got %d", len(route.Conditions))
@@ -100,7 +100,7 @@ func TestListAlertRoutes(t *testing.T) {
 					assertEqual(t, "equals", route.Conditions[0].Operation)
 					assertEqual(t, "critical", route.Conditions[0].Value)
 				}
-				
+
 				// Verify escalations
 				if len(route.Escalations) != 1 {
 					t.Errorf("expected 1 escalation, got %d", len(route.Escalations))
@@ -172,19 +172,19 @@ func TestGetAlertRoute(t *testing.T) {
 					return mockResponse(tt.mockStatusCode, tt.mockResponse), nil
 				},
 			}
-			
+
 			client := NewTestClient(mockClient)
 			route, err := client.GetAlertRoute(tt.routeID)
-			
+
 			if tt.wantError {
 				assertError(t, err)
 				return
 			}
-			
+
 			assertNoError(t, err)
 			assertEqual(t, tt.routeID, route.ID)
 			assertEqual(t, "Critical Alerts Route", route.Name)
-			
+
 			// Verify template
 			if route.Template != nil {
 				if route.Template["incident_type"] != "critical" {
@@ -268,8 +268,8 @@ func TestCreateAlertRoute(t *testing.T) {
 					},
 				},
 				Template: map[string]interface{}{
-					"incident_type":     "alert",
-					"severity":          "high",
+					"incident_type":    "alert",
+					"severity":         "high",
 					"auto_acknowledge": true,
 				},
 			},
@@ -314,23 +314,23 @@ func TestCreateAlertRoute(t *testing.T) {
 					return mockResponse(tt.mockStatusCode, tt.mockResponse), nil
 				},
 			}
-			
+
 			client := NewTestClient(mockClient)
 			route, err := client.CreateAlertRoute(tt.request)
-			
+
 			if tt.wantError {
 				assertError(t, err)
 				return
 			}
-			
+
 			assertNoError(t, err)
 			assertEqual(t, tt.request.Name, route.Name)
-			
+
 			// Verify conditions match
 			if len(route.Conditions) != len(tt.request.Conditions) {
 				t.Errorf("expected %d conditions, got %d", len(tt.request.Conditions), len(route.Conditions))
 			}
-			
+
 			// Verify grouping keys
 			if len(tt.request.GroupingKeys) > 0 {
 				if len(route.GroupingKeys) != len(tt.request.GroupingKeys) {
@@ -425,18 +425,18 @@ func TestUpdateAlertRoute(t *testing.T) {
 					return mockResponse(tt.mockStatusCode, tt.mockResponse), nil
 				},
 			}
-			
+
 			client := NewTestClient(mockClient)
 			route, err := client.UpdateAlertRoute(tt.routeID, tt.request)
-			
+
 			if tt.wantError {
 				assertError(t, err)
 				return
 			}
-			
+
 			assertNoError(t, err)
 			assertEqual(t, tt.routeID, route.ID)
-			
+
 			// Verify updates
 			if tt.request.Name != "" {
 				assertEqual(t, tt.request.Name, route.Name)

@@ -18,18 +18,18 @@ type CreateAlertEventRequest struct {
 // CreateAlertEvent creates a new alert event
 func (c *Client) CreateAlertEvent(req *CreateAlertEventRequest) (*AlertEvent, error) {
 	endpoint := "/alert_events/http"
-	
+
 	respBody, err := c.doRequest("POST", endpoint, nil, req)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	var result struct {
 		AlertEvent AlertEvent `json:"alert_event"`
 	}
 	if err := json.Unmarshal(respBody, &result); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal response: %w", err)
 	}
-	
+
 	return &result.AlertEvent, nil
 }

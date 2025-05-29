@@ -48,15 +48,15 @@ func (t *ListActionsTool) InputSchema() map[string]interface{} {
 
 func (t *ListActionsTool) Execute(args map[string]interface{}) (string, error) {
 	opts := &incidentio.ListActionsOptions{}
-	
+
 	if pageSize, ok := args["page_size"].(float64); ok {
 		opts.PageSize = int(pageSize)
 	}
-	
+
 	if incidentID, ok := args["incident_id"].(string); ok {
 		opts.IncidentID = incidentID
 	}
-	
+
 	if statuses, ok := args["status"].([]interface{}); ok {
 		for _, s := range statuses {
 			if str, ok := s.(string); ok {

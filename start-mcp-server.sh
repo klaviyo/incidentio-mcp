@@ -1,3 +1,3 @@
 #!/bin/bash
 export INCIDENT_IO_API_KEY=***REMOVED***
-exec /Users/tomwentworth/incidentio-mcp-golang/bin/mcp-server-clean
+exec /Users/tomwentworth/incidentio-mcp-golang/bin/mcp-server

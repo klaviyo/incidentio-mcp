@@ -44,11 +44,11 @@ func (t *ListAlertsTool) InputSchema() map[string]interface{} {
 
 func (t *ListAlertsTool) Execute(args map[string]interface{}) (string, error) {
 	opts := &incidentio.ListAlertsOptions{}
-	
+
 	if pageSize, ok := args["page_size"].(float64); ok {
 		opts.PageSize = int(pageSize)
 	}
-	
+
 	if statuses, ok := args["status"].([]interface{}); ok {
 		for _, s := range statuses {
 			if str, ok := s.(string); ok {

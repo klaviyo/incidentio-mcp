@@ -195,7 +195,7 @@ Add to your Claude configuration:
 {
   "mcpServers": {
     "incidentio": {
-      "command": "/path/to/incidentio-mcp-golang/bin/mcp-server-clean",
+      "command": "/path/to/incidentio-mcp-golang/bin/mcp-server",
       "env": {
         "INCIDENT_IO_API_KEY": "your-api-key"
       }
@@ -245,7 +245,7 @@ To enable debug logging, use the wrapper script:
 cat > mcp-debug-wrapper.sh << 'EOF'
 #!/bin/bash
 LOG_FILE="/tmp/mcp-incidentio-debug-$(date +%Y%m%d).log"
-exec /path/to/bin/mcp-server-clean 2>>"$LOG_FILE"
+exec /path/to/bin/mcp-server 2>>"$LOG_FILE"
 EOF
 
 chmod +x mcp-debug-wrapper.sh

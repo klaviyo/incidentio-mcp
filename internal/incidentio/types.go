@@ -4,24 +4,24 @@ import "time"
 
 // Incident represents an incident in incident.io
 type Incident struct {
-	ID                      string              `json:"id"`
-	Reference               string              `json:"reference"`
-	Name                    string              `json:"name"`
-	Summary                 string              `json:"summary,omitempty"`
-	Permalink               string              `json:"permalink"`
-	IncidentStatus          IncidentStatus      `json:"incident_status"`
-	Severity                Severity            `json:"severity"`
-	IncidentType            IncidentType        `json:"incident_type"`
-	Mode                    string              `json:"mode"`
-	Visibility              string              `json:"visibility"`
-	CreatedAt               time.Time           `json:"created_at"`
-	UpdatedAt               time.Time           `json:"updated_at"`
-	SlackTeamID             string              `json:"slack_team_id,omitempty"`
-	SlackChannelID          string              `json:"slack_channel_id,omitempty"`
-	SlackChannelName        string              `json:"slack_channel_name,omitempty"`
-	IncidentRoleAssignments []RoleAssignment    `json:"incident_role_assignments"`
-	CustomFieldEntries      []CustomFieldEntry  `json:"custom_field_entries"`
-	HasDebrief              bool                `json:"has_debrief"`
+	ID                      string             `json:"id"`
+	Reference               string             `json:"reference"`
+	Name                    string             `json:"name"`
+	Summary                 string             `json:"summary,omitempty"`
+	Permalink               string             `json:"permalink"`
+	IncidentStatus          IncidentStatus     `json:"incident_status"`
+	Severity                Severity           `json:"severity"`
+	IncidentType            IncidentType       `json:"incident_type"`
+	Mode                    string             `json:"mode"`
+	Visibility              string             `json:"visibility"`
+	CreatedAt               time.Time          `json:"created_at"`
+	UpdatedAt               time.Time          `json:"updated_at"`
+	SlackTeamID             string             `json:"slack_team_id,omitempty"`
+	SlackChannelID          string             `json:"slack_channel_id,omitempty"`
+	SlackChannelName        string             `json:"slack_channel_name,omitempty"`
+	IncidentRoleAssignments []RoleAssignment   `json:"incident_role_assignments"`
+	CustomFieldEntries      []CustomFieldEntry `json:"custom_field_entries"`
+	HasDebrief              bool               `json:"has_debrief"`
 }
 
 // IncidentStatus represents the status of an incident
@@ -47,14 +47,14 @@ type Severity struct {
 
 // IncidentType represents the type of an incident
 type IncidentType struct {
-	ID                     string    `json:"id"`
-	Name                   string    `json:"name"`
-	Description            string    `json:"description"`
-	IsDefault              bool      `json:"is_default"`
-	PrivateIncidentsOnly   bool      `json:"private_incidents_only"`
-	CreateInTriage         string    `json:"create_in_triage"`
-	CreatedAt              time.Time `json:"created_at"`
-	UpdatedAt              time.Time `json:"updated_at"`
+	ID                   string    `json:"id"`
+	Name                 string    `json:"name"`
+	Description          string    `json:"description"`
+	IsDefault            bool      `json:"is_default"`
+	PrivateIncidentsOnly bool      `json:"private_incidents_only"`
+	CreateInTriage       string    `json:"create_in_triage"`
+	CreatedAt            time.Time `json:"created_at"`
+	UpdatedAt            time.Time `json:"updated_at"`
 }
 
 // RoleAssignment represents a role assignment in an incident
@@ -83,10 +83,10 @@ type User struct {
 // CustomFieldEntry represents a custom field entry
 type CustomFieldEntry struct {
 	CustomField struct {
-		ID          string `json:"id"`
-		Name        string `json:"name"`
-		Description string `json:"description"`
-		FieldType   string `json:"field_type"`
+		ID          string        `json:"id"`
+		Name        string        `json:"name"`
+		Description string        `json:"description"`
+		FieldType   string        `json:"field_type"`
 		Options     []interface{} `json:"options"`
 	} `json:"custom_field"`
 	Values []interface{} `json:"values"`
@@ -119,14 +119,14 @@ type Action struct {
 
 // Workflow represents a workflow in incident.io
 type Workflow struct {
-	ID          string                 `json:"id"`
-	Name        string                 `json:"name"`
-	Trigger     string                 `json:"trigger"`
-	Enabled     bool                   `json:"enabled"`
-	Runs        []WorkflowRun          `json:"runs,omitempty"`
-	State       map[string]interface{} `json:"state,omitempty"`
-	CreatedAt   time.Time              `json:"created_at"`
-	UpdatedAt   time.Time              `json:"updated_at"`
+	ID        string                 `json:"id"`
+	Name      string                 `json:"name"`
+	Trigger   string                 `json:"trigger"`
+	Enabled   bool                   `json:"enabled"`
+	Runs      []WorkflowRun          `json:"runs,omitempty"`
+	State     map[string]interface{} `json:"state,omitempty"`
+	CreatedAt time.Time              `json:"created_at"`
+	UpdatedAt time.Time              `json:"updated_at"`
 }
 
 // WorkflowRun represents a workflow run
@@ -166,15 +166,15 @@ type EscalationBinding struct {
 
 // AlertEvent represents an alert event
 type AlertEvent struct {
-	ID              string                 `json:"id"`
-	AlertSourceID   string                 `json:"alert_source_id"`
+	ID               string                 `json:"id"`
+	AlertSourceID    string                 `json:"alert_source_id"`
 	DeduplicationKey string                 `json:"deduplication_key,omitempty"`
-	Status          string                 `json:"status"`
-	Title           string                 `json:"title"`
-	Description     string                 `json:"description,omitempty"`
-	Metadata        map[string]interface{} `json:"metadata,omitempty"`
-	CreatedAt       time.Time              `json:"created_at"`
-	UpdatedAt       time.Time              `json:"updated_at"`
+	Status           string                 `json:"status"`
+	Title            string                 `json:"title"`
+	Description      string                 `json:"description,omitempty"`
+	Metadata         map[string]interface{} `json:"metadata,omitempty"`
+	CreatedAt        time.Time              `json:"created_at"`
+	UpdatedAt        time.Time              `json:"updated_at"`
 }
 
 // RetrospectiveIncidentOptionsRequest represents retrospective options for an incident

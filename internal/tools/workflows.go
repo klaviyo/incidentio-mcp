@@ -45,24 +45,24 @@ func (t *ListWorkflowsTool) InputSchema() map[string]interface{} {
 
 func (t *ListWorkflowsTool) Execute(args map[string]interface{}) (string, error) {
 	params := &incidentio.ListWorkflowsParams{}
-	
+
 	if pageSize, ok := args["page_size"].(float64); ok {
 		params.PageSize = int(pageSize)
 	}
 	if after, ok := args["after"].(string); ok {
 		params.After = after
 	}
-	
+
 	result, err := t.client.ListWorkflows(params)
 	if err != nil {
 		return "", fmt.Errorf("failed to list workflows: %w", err)
 	}
-	
+
 	output, err := json.MarshalIndent(result, "", "  ")
 	if err != nil {
 		return "", fmt.Errorf("failed to marshal result: %w", err)
 	}
-	
+
 	return string(output), nil
 }
 
@@ -103,17 +103,17 @@ func (t *GetWorkflowTool) Execute(args map[string]interface{}) (string, error) {
 	if !ok || id == "" {
 		return "", fmt.Errorf("workflow ID is required")
 	}
-	
+
 	workflow, err := t.client.GetWorkflow(id)
 	if err != nil {
 		return "", fmt.Errorf("failed to get workflow: %w", err)
 	}
-	
+
 	output, err := json.MarshalIndent(workflow, "", "  ")
 	if err != nil {
 		return "", fmt.Errorf("failed to marshal result: %w", err)
 	}
-	
+
 	return string(output), nil
 }
 
@@ -166,30 +166,30 @@ func (t *UpdateWorkflowTool) Execute(args map[string]interface{}) (string, error
 	if !ok || id == "" {
 		return "", fmt.Errorf("workflow ID is required")
 	}
-	
+
 	req := &incidentio.UpdateWorkflowRequest{}
-	
+
 	if name, ok := args["name"].(string); ok {
 		req.Name = name
 	}
-	
+
 	if enabled, ok := args["enabled"].(bool); ok {
 		req.Enabled = &enabled
 	}
-	
+
 	if state, ok := args["state"].(map[string]interface{}); ok {
 		req.State = state
 	}
-	
+
 	workflow, err := t.client.UpdateWorkflow(id, req)
 	if err != nil {
 		return "", fmt.Errorf("failed to update workflow: %w", err)
 	}
-	
+
 	output, err := json.MarshalIndent(workflow, "", "  ")
 	if err != nil {
 		return "", fmt.Errorf("failed to marshal result: %w", err)
 	}
-	
+
 	return string(output), nil
 }

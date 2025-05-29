@@ -26,16 +26,16 @@ func (c *Client) ListIncidents(opts *ListIncidentsOptions) (*ListIncidentsRespon
 	allIncidents := []Incident{}
 	pageSize := 250 // Default max page size
 	after := ""
-	
+
 	// If a specific page size is requested, respect it and don't paginate
 	if opts != nil && opts.PageSize > 0 {
 		params := url.Values{}
 		params.Set("page_size", strconv.Itoa(opts.PageSize))
-		
+
 		if opts.After != "" {
 			params.Set("after", opts.After)
 		}
-		
+
 		for _, status := range opts.Status {
 			params.Add("status", status)
 		}
@@ -55,7 +55,7 @@ func (c *Client) ListIncidents(opts *ListIncidentsOptions) (*ListIncidentsRespon
 
 		return &response, nil
 	}
-	
+
 	// Set up base parameters for auto-pagination
 	baseParams := url.Values{}
 	if opts != nil {
@@ -66,7 +66,7 @@ func (c *Client) ListIncidents(opts *ListIncidentsOptions) (*ListIncidentsRespon
 			baseParams.Add("severity", severity)
 		}
 	}
-	
+
 	// Paginate through all results
 	maxPages := 10 // Safety limit
 	for page := 0; page < maxPages; page++ {
@@ -75,7 +75,7 @@ func (c *Client) ListIncidents(opts *ListIncidentsOptions) (*ListIncidentsRespon
 		for k, v := range baseParams {
 			params[k] = v
 		}
-		
+
 		params.Set("page_size", strconv.Itoa(pageSize))
 		if after != "" {
 			params.Set("after", after)
@@ -92,14 +92,14 @@ func (c *Client) ListIncidents(opts *ListIncidentsOptions) (*ListIncidentsRespon
 		}
 
 		allIncidents = append(allIncidents, response.Incidents...)
-		
+
 		// Check if there are more pages
 		if response.PaginationMeta.After == "" || len(response.Incidents) == 0 {
 			break
 		}
 		after = response.PaginationMeta.After
 	}
-	
+
 	// Return combined results
 	return &ListIncidentsResponse{
 		Incidents: allIncidents,
@@ -156,10 +156,10 @@ func (c *Client) UpdateIncident(id string, req *UpdateIncidentRequest) (*Inciden
 	editRequest := map[string]interface{}{
 		"notify_incident_channel": true,
 	}
-	
+
 	// Build the incident object with only the fields that are being updated
 	incident := make(map[string]interface{})
-	
+
 	if req.Name != "" {
 		incident["name"] = req.Name
 	}
@@ -187,14 +187,14 @@ func (c *Client) UpdateIncident(id string, req *UpdateIncidentRequest) (*Inciden
 	if len(req.IncidentTimestampValues) > 0 {
 		incident["incident_timestamp_values"] = req.IncidentTimestampValues
 	}
-	
+
 	// Only include incident object if there are fields to update
 	if len(incident) > 0 {
 		editRequest["incident"] = incident
 	} else {
 		return nil, fmt.Errorf("no fields to update")
 	}
-	
+
 	respBody, err := c.doRequest("POST", fmt.Sprintf("/incidents/%s/actions/edit", id), nil, editRequest)
 	if err != nil {
 		return nil, err
@@ -209,6 +209,7 @@ func (c *Client) UpdateIncident(id string, req *UpdateIncidentRequest) (*Inciden
 
 	return &response.Incident, nil
 }
+
 // AssignIncidentRoleRequest represents a request to assign a role to a user
 type AssignIncidentRoleRequest struct {
 	IncidentRoleID string `json:"incident_role_id"`

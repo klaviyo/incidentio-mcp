@@ -83,7 +83,7 @@ func TestListAlertSources(t *testing.T) {
 				DoFunc: func(req *http.Request) (*http.Response, error) {
 					assertEqual(t, "GET", req.Method)
 					assertEqual(t, "Bearer test-api-key", req.Header.Get("Authorization"))
-					
+
 					// Check query parameters
 					if tt.params != nil {
 						if tt.params.PageSize > 0 {
@@ -97,24 +97,24 @@ func TestListAlertSources(t *testing.T) {
 							assertEqual(t, tt.params.After, req.URL.Query().Get("after"))
 						}
 					}
-					
+
 					return mockResponse(tt.mockStatusCode, tt.mockResponse), nil
 				},
 			}
-			
+
 			client := NewTestClient(mockClient)
 			result, err := client.ListAlertSources(tt.params)
-			
+
 			if tt.wantError {
 				assertError(t, err)
 				return
 			}
-			
+
 			assertNoError(t, err)
 			if len(result.AlertSources) != tt.expectedCount {
 				t.Errorf("expected %d alert sources, got %d", tt.expectedCount, len(result.AlertSources))
 			}
-			
+
 			// Verify first alert source details
 			if tt.expectedCount > 0 {
 				source := result.AlertSources[0]
@@ -130,7 +130,7 @@ func TestListAlertSources(t *testing.T) {
 					assertEqual(t, "pagerduty", source.Type)
 				}
 			}
-			
+
 			// Verify pagination info
 			if tt.params != nil && tt.params.PageSize > 0 {
 				if result.Pagination.PageSize != tt.params.PageSize {

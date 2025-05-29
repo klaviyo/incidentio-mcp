@@ -45,23 +45,23 @@ func (t *ListAlertSourcesTool) InputSchema() map[string]interface{} {
 
 func (t *ListAlertSourcesTool) Execute(args map[string]interface{}) (string, error) {
 	params := &incidentio.ListAlertSourcesParams{}
-	
+
 	if pageSize, ok := args["page_size"].(float64); ok {
 		params.PageSize = int(pageSize)
 	}
 	if after, ok := args["after"].(string); ok {
 		params.After = after
 	}
-	
+
 	result, err := t.client.ListAlertSources(params)
 	if err != nil {
 		return "", fmt.Errorf("failed to list alert sources: %w", err)
 	}
-	
+
 	output, err := json.MarshalIndent(result, "", "  ")
 	if err != nil {
 		return "", fmt.Errorf("failed to marshal result: %w", err)
 	}
-	
+
 	return string(output), nil
 }

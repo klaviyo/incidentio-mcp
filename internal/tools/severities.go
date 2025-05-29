@@ -26,8 +26,8 @@ func (t *ListSeveritiesTool) Description() string {
 
 func (t *ListSeveritiesTool) InputSchema() map[string]interface{} {
 	return map[string]interface{}{
-		"type":       "object",
-		"properties": map[string]interface{}{},
+		"type":                 "object",
+		"properties":           map[string]interface{}{},
 		"additionalProperties": false,
 	}
 }
@@ -40,7 +40,7 @@ func (t *ListSeveritiesTool) Execute(args map[string]interface{}) (string, error
 
 	// Format the output to be more readable
 	output := fmt.Sprintf("Found %d severity levels:\n\n", len(result.Severities))
-	
+
 	for _, severity := range result.Severities {
 		output += fmt.Sprintf("ID: %s\n", severity.ID)
 		output += fmt.Sprintf("Name: %s\n", severity.Name)

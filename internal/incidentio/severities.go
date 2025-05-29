@@ -19,7 +19,7 @@ func (c *Client) ListSeverities() (*ListSeveritiesResponse, error) {
 	originalBaseURL := c.BaseURL()
 	c.SetBaseURL("https://api.incident.io/v1")
 	defer func() { c.SetBaseURL(originalBaseURL) }()
-	
+
 	respBody, err := c.doRequest("GET", "/severities", nil, nil)
 	if err != nil {
 		return nil, err
@@ -40,7 +40,7 @@ func (c *Client) GetSeverity(id string) (*Severity, error) {
 	originalBaseURL := c.BaseURL()
 	c.SetBaseURL("https://api.incident.io/v1")
 	defer func() { c.SetBaseURL(originalBaseURL) }()
-	
+
 	respBody, err := c.doRequest("GET", fmt.Sprintf("/severities/%s", id), nil, nil)
 	if err != nil {
 		return nil, err

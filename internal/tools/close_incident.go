@@ -51,14 +51,14 @@ func (t *CloseIncidentTool) Execute(args map[string]interface{}) (string, error)
 
 	// Check if it's already closed
 	if incident.IncidentStatus.Category == "closed" {
-		return fmt.Sprintf("Incident %s (%s) is already closed with status: %s", 
+		return fmt.Sprintf("Incident %s (%s) is already closed with status: %s",
 			incident.ID, incident.Name, incident.IncidentStatus.Name), nil
 	}
 
 	// Try to close the incident using the update API
 	// incident.io has workflow restrictions, so we might need to go through intermediate steps
 	closedStatusID := "01JAR1BCBHSK633DVJSFC16RPY"
-	
+
 	req := &incidentio.UpdateIncidentRequest{
 		IncidentStatusID: closedStatusID,
 	}
@@ -79,9 +79,9 @@ You can also close manually:
 - Incident page: %s
 - Slack channel: %s
 
-Use the update_incident tool with incident_status_id: %s`, 
-			err, 
-			incident.IncidentStatus.Name, 
+Use the update_incident tool with incident_status_id: %s`,
+			err,
+			incident.IncidentStatus.Name,
 			incident.IncidentStatus.Category,
 			incident.Permalink,
 			incident.SlackChannelName,
@@ -90,11 +90,11 @@ Use the update_incident tool with incident_status_id: %s`,
 
 	// Success! Return the updated incident
 	result, err := json.MarshalIndent(map[string]interface{}{
-		"message": fmt.Sprintf("Successfully updated incident %s to status: %s", 
+		"message": fmt.Sprintf("Successfully updated incident %s to status: %s",
 			updatedIncident.Name, updatedIncident.IncidentStatus.Name),
 		"incident": updatedIncident,
 	}, "", "  ")
-	
+
 	if err != nil {
 		return "", fmt.Errorf("failed to format response: %w", err)
 	}

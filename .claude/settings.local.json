@@ -25,8 +25,22 @@
       "Bash(then echo \"=== ~/mcp-debug.log ===\")",
       "Bash(./test_update_incident.sh:*)",
       "Bash(go run:*)",
-      "Bash(./test_pause.sh:*)"
+      "Bash(./test_pause.sh:*)",
+      "Bash(make:*)",
+      "mcp__incidentio-golang__list_severities",
+      "mcp__incidentio-golang__list_incident_statuses",
+      "mcp__incidentio-golang__create_incident",
+      "mcp__incidentio-golang__list_incidents",
+      "Bash(ls:*)",
+      "mcp__incidentio-golang__list_alerts",
+      "mcp__incidentio-alert__send_alert",
+      "mcp__incidentio-golang__get_alert",
+      "Bash(diff:*)",
+      "Bash(mv:*)",
+      "Bash(rg:*)",
+      "Bash(./start-mcp-server.sh:*)"
     ],
     "deny": []
-  }
+  },
+  "enableAllProjectMcpServers": false
 }

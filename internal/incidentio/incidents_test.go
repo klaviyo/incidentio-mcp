@@ -93,7 +93,7 @@ func TestListIncidents(t *testing.T) {
 				DoFunc: func(req *http.Request) (*http.Response, error) {
 					assertEqual(t, "GET", req.Method)
 					assertEqual(t, "Bearer test-api-key", req.Header.Get("Authorization"))
-					
+
 					// Check query parameters
 					if tt.params != nil {
 						if tt.params.PageSize > 0 {
@@ -107,24 +107,24 @@ func TestListIncidents(t *testing.T) {
 							}
 						}
 					}
-					
+
 					return mockResponse(tt.mockStatusCode, tt.mockResponse), nil
 				},
 			}
-			
+
 			client := NewTestClient(mockClient)
 			result, err := client.ListIncidents(tt.params)
-			
+
 			if tt.wantError {
 				assertError(t, err)
 				return
 			}
-			
+
 			assertNoError(t, err)
 			if len(result.Incidents) != tt.expectedCount {
 				t.Errorf("expected %d incidents, got %d", tt.expectedCount, len(result.Incidents))
 			}
-			
+
 			if tt.expectedCount > 0 {
 				incident := result.Incidents[0]
 				switch tt.name {
@@ -204,20 +204,20 @@ func TestGetIncident(t *testing.T) {
 					return mockResponse(tt.mockStatusCode, tt.mockResponse), nil
 				},
 			}
-			
+
 			client := NewTestClient(mockClient)
 			incident, err := client.GetIncident(tt.incidentID)
-			
+
 			if tt.wantError {
 				assertError(t, err)
 				return
 			}
-			
+
 			assertNoError(t, err)
 			assertEqual(t, tt.incidentID, incident.ID)
 			assertEqual(t, "INC-123", incident.Reference)
 			assertEqual(t, "Database outage", incident.Name)
-			
+
 			// Verify role assignments
 			if len(incident.IncidentRoleAssignments) > 0 {
 				assignment := incident.IncidentRoleAssignments[0]
@@ -300,7 +300,7 @@ func TestCreateIncident(t *testing.T) {
 				IncidentRoleAssignments: []CreateRoleAssignmentRequest{
 					{
 						IncidentRoleID: "role_commander",
-						UserID:     "user_456",
+						UserID:         "user_456",
 					},
 				},
 			},
@@ -345,19 +345,19 @@ func TestCreateIncident(t *testing.T) {
 					return mockResponse(tt.mockStatusCode, tt.mockResponse), nil
 				},
 			}
-			
+
 			client := NewTestClient(mockClient)
 			incident, err := client.CreateIncident(tt.request)
-			
+
 			if tt.wantError {
 				assertError(t, err)
 				return
 			}
-			
+
 			assertNoError(t, err)
 			assertEqual(t, tt.request.Name, incident.Name)
 			assertEqual(t, tt.request.Summary, incident.Summary)
-			
+
 			// Verify severity and status if specified
 			if tt.request.SeverityID != "" {
 				assertEqual(t, tt.request.SeverityID, incident.Severity.ID)
@@ -457,18 +457,18 @@ func TestUpdateIncident(t *testing.T) {
 					return mockResponse(tt.mockStatusCode, tt.mockResponse), nil
 				},
 			}
-			
+
 			client := NewTestClient(mockClient)
 			incident, err := client.UpdateIncident(tt.incidentID, tt.request)
-			
+
 			if tt.wantError {
 				assertError(t, err)
 				return
 			}
-			
+
 			assertNoError(t, err)
 			assertEqual(t, tt.incidentID, incident.ID)
-			
+
 			// Verify updates
 			if tt.request.Name != "" {
 				assertEqual(t, tt.request.Name, incident.Name)

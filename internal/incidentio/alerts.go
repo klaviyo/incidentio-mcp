@@ -25,7 +25,7 @@ func (c *Client) ListAlerts(opts *ListAlertsOptions) (*ListAlertsResponse, error
 	allAlerts := []Alert{}
 	pageSize := 50 // Max page size for alerts is 50
 	after := ""
-	
+
 	// Set up base parameters
 	baseParams := url.Values{}
 	if opts != nil {
@@ -33,7 +33,7 @@ func (c *Client) ListAlerts(opts *ListAlertsOptions) (*ListAlertsResponse, error
 			baseParams.Add("status", status)
 		}
 	}
-	
+
 	// Paginate through all results
 	maxPages := 10 // Safety limit
 	for page := 0; page < maxPages; page++ {
@@ -42,7 +42,7 @@ func (c *Client) ListAlerts(opts *ListAlertsOptions) (*ListAlertsResponse, error
 		for k, v := range baseParams {
 			params[k] = v
 		}
-		
+
 		params.Set("page_size", strconv.Itoa(pageSize))
 		if after != "" {
 			params.Set("after", after)
@@ -59,14 +59,14 @@ func (c *Client) ListAlerts(opts *ListAlertsOptions) (*ListAlertsResponse, error
 		}
 
 		allAlerts = append(allAlerts, response.Alerts...)
-		
+
 		// Check if there are more pages
 		if response.PaginationMeta.After == "" || len(response.Alerts) == 0 {
 			break
 		}
 		after = response.PaginationMeta.After
 	}
-	
+
 	// Return combined results
 	return &ListAlertsResponse{
 		Alerts: allAlerts,
@@ -105,7 +105,7 @@ func (c *Client) ListAlertsForIncident(incidentID string, opts *ListAlertsOption
 	allAlerts := []Alert{}
 	pageSize := 50 // Max page size for alerts is 50
 	after := ""
-	
+
 	// Set up base parameters
 	baseParams := url.Values{}
 	if opts != nil {
@@ -113,7 +113,7 @@ func (c *Client) ListAlertsForIncident(incidentID string, opts *ListAlertsOption
 			baseParams.Add("status", status)
 		}
 	}
-	
+
 	// Paginate through all results
 	maxPages := 10 // Safety limit
 	for page := 0; page < maxPages; page++ {
@@ -122,7 +122,7 @@ func (c *Client) ListAlertsForIncident(incidentID string, opts *ListAlertsOption
 		for k, v := range baseParams {
 			params[k] = v
 		}
-		
+
 		params.Set("incident_id", incidentID) // Filter by incident
 		params.Set("page_size", strconv.Itoa(pageSize))
 		if after != "" {
@@ -140,14 +140,14 @@ func (c *Client) ListAlertsForIncident(incidentID string, opts *ListAlertsOption
 		}
 
 		allAlerts = append(allAlerts, response.Alerts...)
-		
+
 		// Check if there are more pages
 		if response.PaginationMeta.After == "" || len(response.Alerts) == 0 {
 			break
 		}
 		after = response.PaginationMeta.After
 	}
-	
+
 	// Return combined results
 	return &ListAlertsResponse{
 		Alerts: allAlerts,

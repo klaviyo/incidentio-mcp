@@ -44,24 +44,24 @@ func (t *ListIncidentUpdatesTool) InputSchema() map[string]interface{} {
 
 func (t *ListIncidentUpdatesTool) Execute(args map[string]interface{}) (string, error) {
 	opts := &incidentio.ListIncidentUpdatesOptions{}
-	
+
 	if incidentID, ok := args["incident_id"].(string); ok {
 		opts.IncidentID = incidentID
 	}
 	if pageSize, ok := args["page_size"].(float64); ok {
 		opts.PageSize = int(pageSize)
 	}
-	
+
 	resp, err := t.client.ListIncidentUpdates(opts)
 	if err != nil {
 		return "", err
 	}
-	
+
 	result, err := json.MarshalIndent(resp, "", "  ")
 	if err != nil {
 		return "", fmt.Errorf("failed to format response: %w", err)
 	}
-	
+
 	return string(result), nil
 }
 
@@ -101,17 +101,17 @@ func (t *GetIncidentUpdateTool) Execute(args map[string]interface{}) (string, er
 	if !ok || id == "" {
 		return "", fmt.Errorf("id parameter is required")
 	}
-	
+
 	update, err := t.client.GetIncidentUpdate(id)
 	if err != nil {
 		return "", err
 	}
-	
+
 	result, err := json.MarshalIndent(update, "", "  ")
 	if err != nil {
 		return "", fmt.Errorf("failed to format response: %w", err)
 	}
-	
+
 	return string(result), nil
 }
 
@@ -155,27 +155,27 @@ func (t *CreateIncidentUpdateTool) Execute(args map[string]interface{}) (string,
 	if !ok || incidentID == "" {
 		return "", fmt.Errorf("incident_id parameter is required")
 	}
-	
+
 	message, ok := args["message"].(string)
 	if !ok || message == "" {
 		return "", fmt.Errorf("message parameter is required")
 	}
-	
+
 	req := &incidentio.CreateIncidentUpdateRequest{
 		IncidentID: incidentID,
 		Message:    message,
 	}
-	
+
 	update, err := t.client.CreateIncidentUpdate(req)
 	if err != nil {
 		return "", err
 	}
-	
+
 	result, err := json.MarshalIndent(update, "", "  ")
 	if err != nil {
 		return "", fmt.Errorf("failed to format response: %w", err)
 	}
-	
+
 	return string(result), nil
 }
 
@@ -215,10 +215,10 @@ func (t *DeleteIncidentUpdateTool) Execute(args map[string]interface{}) (string,
 	if !ok || id == "" {
 		return "", fmt.Errorf("id parameter is required")
 	}
-	
+
 	if err := t.client.DeleteIncidentUpdate(id); err != nil {
 		return "", err
 	}
-	
+
 	return fmt.Sprintf("Successfully deleted incident update %s", id), nil
 }

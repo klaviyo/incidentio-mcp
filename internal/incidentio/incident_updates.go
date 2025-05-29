@@ -10,7 +10,7 @@ import (
 // ListIncidentUpdates retrieves incident updates with optional filtering
 func (c *Client) ListIncidentUpdates(opts *ListIncidentUpdatesOptions) (*ListIncidentUpdatesResponse, error) {
 	params := url.Values{}
-	
+
 	if opts != nil {
 		if opts.IncidentID != "" {
 			params.Set("incident_id", opts.IncidentID)
@@ -22,17 +22,17 @@ func (c *Client) ListIncidentUpdates(opts *ListIncidentUpdatesOptions) (*ListInc
 			params.Set("after", opts.After)
 		}
 	}
-	
+
 	respBody, err := c.doRequest("GET", "/incident_updates", params, nil)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	var response ListIncidentUpdatesResponse
 	if err := json.Unmarshal(respBody, &response); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal response: %w", err)
 	}
-	
+
 	return &response, nil
 }
 
@@ -42,14 +42,14 @@ func (c *Client) GetIncidentUpdate(id string) (*IncidentUpdate, error) {
 	if err != nil {
 		return nil, err
 	}
-	
+
 	var response struct {
 		IncidentUpdate IncidentUpdate `json:"incident_update"`
 	}
 	if err := json.Unmarshal(respBody, &response); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal response: %w", err)
 	}
-	
+
 	return &response.IncidentUpdate, nil
 }
 
@@ -62,19 +62,19 @@ func (c *Client) CreateIncidentUpdate(req *CreateIncidentUpdateRequest) (*Incide
 	if req.Message == "" {
 		return nil, fmt.Errorf("message is required")
 	}
-	
+
 	respBody, err := c.doRequest("POST", "/incident_updates", nil, req)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	var response struct {
 		IncidentUpdate IncidentUpdate `json:"incident_update"`
 	}
 	if err := json.Unmarshal(respBody, &response); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal response: %w", err)
 	}
-	
+
 	return &response.IncidentUpdate, nil
 }
 

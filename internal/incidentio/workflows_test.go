@@ -61,29 +61,29 @@ func TestListWorkflows(t *testing.T) {
 					// Verify request
 					assertEqual(t, "GET", req.Method)
 					assertEqual(t, "Bearer test-api-key", req.Header.Get("Authorization"))
-					
+
 					// Check query params if provided
 					if tt.params != nil && tt.params.PageSize > 0 {
 						assertEqual(t, "10", req.URL.Query().Get("page_size"))
 					}
-					
+
 					return mockResponse(tt.mockStatusCode, tt.mockResponse), nil
 				},
 			}
-			
+
 			client := NewTestClient(mockClient)
 			result, err := client.ListWorkflows(tt.params)
-			
+
 			if tt.wantError {
 				assertError(t, err)
 				return
 			}
-			
+
 			assertNoError(t, err)
 			if len(result.Workflows) != tt.expectedCount {
 				t.Errorf("expected %d workflows, got %d", tt.expectedCount, len(result.Workflows))
 			}
-			
+
 			if tt.expectedCount > 0 {
 				assertEqual(t, "wf_123", result.Workflows[0].ID)
 				assertEqual(t, "Test Workflow", result.Workflows[0].Name)
@@ -135,15 +135,15 @@ func TestGetWorkflow(t *testing.T) {
 					return mockResponse(tt.mockStatusCode, tt.mockResponse), nil
 				},
 			}
-			
+
 			client := NewTestClient(mockClient)
 			workflow, err := client.GetWorkflow(tt.workflowID)
-			
+
 			if tt.wantError {
 				assertError(t, err)
 				return
 			}
-			
+
 			assertNoError(t, err)
 			assertEqual(t, tt.workflowID, workflow.ID)
 			assertEqual(t, "Test Workflow", workflow.Name)
@@ -216,18 +216,18 @@ func TestUpdateWorkflow(t *testing.T) {
 					return mockResponse(tt.mockStatusCode, tt.mockResponse), nil
 				},
 			}
-			
+
 			client := NewTestClient(mockClient)
 			workflow, err := client.UpdateWorkflow(tt.workflowID, tt.request)
-			
+
 			if tt.wantError {
 				assertError(t, err)
 				return
 			}
-			
+
 			assertNoError(t, err)
 			assertEqual(t, tt.workflowID, workflow.ID)
-			
+
 			// Verify updates were applied
 			if tt.request.Name != "" {
 				assertEqual(t, tt.request.Name, workflow.Name)

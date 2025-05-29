@@ -148,36 +148,36 @@ func TestCreateAlertEvent(t *testing.T) {
 					assertEqual(t, "/alert_events/http", req.URL.Path)
 					assertEqual(t, "Bearer test-api-key", req.Header.Get("Authorization"))
 					assertEqual(t, "application/json", req.Header.Get("Content-Type"))
-					
+
 					return mockResponse(tt.mockStatusCode, tt.mockResponse), nil
 				},
 			}
-			
+
 			client := NewTestClient(mockClient)
 			event, err := client.CreateAlertEvent(tt.request)
-			
+
 			if tt.wantError {
 				assertError(t, err)
 				return
 			}
-			
+
 			assertNoError(t, err)
 			assertEqual(t, tt.request.AlertSourceID, event.AlertSourceID)
 			assertEqual(t, tt.request.Title, event.Title)
-			
+
 			// Verify optional fields
 			if tt.request.Description != "" {
 				assertEqual(t, tt.request.Description, event.Description)
 			}
-			
+
 			if tt.request.DeduplicationKey != "" {
 				assertEqual(t, tt.request.DeduplicationKey, event.DeduplicationKey)
 			}
-			
+
 			if tt.request.Status != "" {
 				assertEqual(t, tt.request.Status, event.Status)
 			}
-			
+
 			// Verify metadata
 			if tt.request.Metadata != nil {
 				if event.Metadata == nil {

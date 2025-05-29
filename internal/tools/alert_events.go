@@ -64,46 +64,46 @@ func (t *CreateAlertEventTool) InputSchema() map[string]interface{} {
 
 func (t *CreateAlertEventTool) Execute(args map[string]interface{}) (string, error) {
 	req := &incidentio.CreateAlertEventRequest{}
-	
+
 	alertSourceID, ok := args["alert_source_id"].(string)
 	if !ok || alertSourceID == "" {
 		return "", fmt.Errorf("alert_source_id is required")
 	}
 	req.AlertSourceID = alertSourceID
-	
+
 	title, ok := args["title"].(string)
 	if !ok || title == "" {
 		return "", fmt.Errorf("title is required")
 	}
 	req.Title = title
-	
+
 	if description, ok := args["description"].(string); ok {
 		req.Description = description
 	}
-	
+
 	if deduplicationKey, ok := args["deduplication_key"].(string); ok {
 		req.DeduplicationKey = deduplicationKey
 	}
-	
+
 	if status, ok := args["status"].(string); ok {
 		req.Status = status
 	} else {
 		req.Status = "firing" // default
 	}
-	
+
 	if metadata, ok := args["metadata"].(map[string]interface{}); ok {
 		req.Metadata = metadata
 	}
-	
+
 	alertEvent, err := t.client.CreateAlertEvent(req)
 	if err != nil {
 		return "", fmt.Errorf("failed to create alert event: %w", err)
 	}
-	
+
 	output, err := json.MarshalIndent(alertEvent, "", "  ")
 	if err != nil {
 		return "", fmt.Errorf("failed to marshal result: %w", err)
 	}
-	
+
 	return string(output), nil
 }

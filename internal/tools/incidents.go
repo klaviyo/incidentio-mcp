@@ -3,7 +3,7 @@ package tools
 import (
 	"encoding/json"
 	"fmt"
-	"os"
+	"strings"
 	"time"
 
 	"github.com/tomwentworth/incidentio-mcp-golang/internal/incidentio"
@@ -51,11 +51,11 @@ func (t *ListIncidentsTool) InputSchema() map[string]interface{} {
 
 func (t *ListIncidentsTool) Execute(args map[string]interface{}) (string, error) {
 	opts := &incidentio.ListIncidentsOptions{}
-	
+
 	if pageSize, ok := args["page_size"].(float64); ok {
 		opts.PageSize = int(pageSize)
 	}
-	
+
 	if statuses, ok := args["status"].([]interface{}); ok {
 		for _, s := range statuses {
 			if str, ok := s.(string); ok {
@@ -63,7 +63,7 @@ func (t *ListIncidentsTool) Execute(args map[string]interface{}) (string, error)
 			}
 		}
 	}
-	
+
 	if severities, ok := args["severity"].([]interface{}); ok {
 		for _, s := range severities {
 			if str, ok := s.(string); ok {
@@ -119,7 +119,6 @@ func (t *GetIncidentTool) InputSchema() map[string]interface{} {
 func (t *GetIncidentTool) Execute(args map[string]interface{}) (string, error) {
 	id, ok := args["incident_id"].(string)
 	if !ok || id == "" {
-		// Debug: show what we actually received
 		argDetails := make(map[string]interface{})
 		for key, value := range args {
 			argDetails[key] = value
@@ -203,7 +202,7 @@ func (t *CreateIncidentTool) InputSchema() map[string]interface{} {
 				"description": "Override the auto-generated Slack channel name",
 			},
 		},
-		"required": []interface{}{"name"},
+		"required":             []interface{}{"name"},
 		"additionalProperties": false,
 	}
 }
@@ -216,12 +215,12 @@ func (t *CreateIncidentTool) Execute(args map[string]interface{}) (string, error
 
 	// Generate idempotency key using timestamp and name
 	idempotencyKey := fmt.Sprintf("mcp-%d-%s", time.Now().UnixNano(), name)
-	
+
 	req := &incidentio.CreateIncidentRequest{
 		IdempotencyKey: idempotencyKey,
-		Name: name,
-		Mode: "standard", // Default to standard mode
-		Visibility: "public", // Default to public visibility
+		Name:           name,
+		Mode:           "standard", // Default to standard mode
+		Visibility:     "public",   // Default to public visibility
 	}
 
 	if summary, ok := args["summary"].(string); ok {
@@ -246,14 +245,39 @@ func (t *CreateIncidentTool) Execute(args map[string]interface{}) (string, error
 		req.SlackChannelNameOverride = slackOverride
 	}
 
+	// Check if critical fields are missing and provide helpful suggestions
+	var suggestions []string
+
+	if req.SeverityID == "" {
+		suggestions = append(suggestions, "severity_id is not set. Use list_severities to see available options.")
+	}
+
+	if req.IncidentTypeID == "" {
+		suggestions = append(suggestions, "incident_type_id is not set. Use list_incident_types to see available options.")
+	}
+
+	if req.IncidentStatusID == "" {
+		suggestions = append(suggestions, "incident_status_id is not set. Use list_incident_statuses to see available options.")
+	}
+
 	incident, err := t.client.CreateIncident(req)
 	if err != nil {
+		// If the error is related to missing required fields, provide more helpful error message
+		errMsg := err.Error()
+		if len(suggestions) > 0 && (strings.Contains(errMsg, "severity") || strings.Contains(errMsg, "incident_type") || strings.Contains(errMsg, "incident_status")) {
+			return "", fmt.Errorf("%s\n\nSuggestions:\n%s", errMsg, strings.Join(suggestions, "\n"))
+		}
 		return "", err
 	}
 
+	// Include suggestions in successful response if fields were missing
 	result, err := json.MarshalIndent(incident, "", "  ")
 	if err != nil {
 		return "", fmt.Errorf("failed to format response: %w", err)
+	}
+
+	if len(suggestions) > 0 {
+		return fmt.Sprintf("%s\n\nNote: Incident created with defaults. %s", result, strings.Join(suggestions, " ")), nil
 	}
 
 	return string(result), nil
@@ -301,26 +325,21 @@ func (t *UpdateIncidentTool) InputSchema() map[string]interface{} {
 				"description": "Update the severity ID",
 			},
 		},
-		"required": []interface{}{"incident_id"},
+		"required":             []interface{}{"incident_id"},
 		"additionalProperties": false,
 	}
 }
 
 func (t *UpdateIncidentTool) Execute(args map[string]interface{}) (string, error) {
-	// Log all received arguments
-	fmt.Fprintf(os.Stderr, "[DEBUG] UpdateIncidentTool.Execute called with args: %+v\n", args)
-	
+
 	id, ok := args["incident_id"].(string)
 	if !ok || id == "" {
-		// Debug: show what we actually received
 		argDetails := make(map[string]interface{})
 		for key, value := range args {
 			argDetails[key] = value
 		}
 		return "", fmt.Errorf("incident_id parameter is required and must be a non-empty string. Received parameters: %+v", argDetails)
 	}
-
-	fmt.Fprintf(os.Stderr, "[DEBUG] UpdateIncidentTool: incident ID = %s\n", id)
 
 	req := &incidentio.UpdateIncidentRequest{}
 	hasUpdate := false
@@ -340,14 +359,11 @@ func (t *UpdateIncidentTool) Execute(args map[string]interface{}) (string, error
 	if severityID, ok := args["severity_id"].(string); ok {
 		req.SeverityID = severityID
 		hasUpdate = true
-		fmt.Fprintf(os.Stderr, "[DEBUG] UpdateIncidentTool: setting severity_id = %s\n", severityID)
 	}
 
 	if !hasUpdate {
 		return "", fmt.Errorf("at least one field to update must be provided")
 	}
-	
-	fmt.Fprintf(os.Stderr, "[DEBUG] UpdateIncidentTool: calling client.UpdateIncident with id=%s, req=%+v\n", id, req)
 
 	incident, err := t.client.UpdateIncident(id, req)
 	if err != nil {

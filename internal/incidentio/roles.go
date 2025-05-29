@@ -22,13 +22,13 @@ type IncidentRole struct {
 
 // User represents a user in incident.io (expanded from existing definition)
 type UserDetailed struct {
-	ID            string     `json:"id"`
-	Name          string     `json:"name"`
-	Email         string     `json:"email"`
-	SlackUserID   string     `json:"slack_user_id,omitempty"`
-	Role          string     `json:"role"`
-	BaseRole      *BaseRole  `json:"base_role,omitempty"`
-	CustomRoles   []Role     `json:"custom_roles,omitempty"`
+	ID          string    `json:"id"`
+	Name        string    `json:"name"`
+	Email       string    `json:"email"`
+	SlackUserID string    `json:"slack_user_id,omitempty"`
+	Role        string    `json:"role"`
+	BaseRole    *BaseRole `json:"base_role,omitempty"`
+	CustomRoles []Role    `json:"custom_roles,omitempty"`
 }
 
 // BaseRole represents a base role
@@ -75,7 +75,7 @@ type ListUsersResponse struct {
 // ListIncidentRoles retrieves a list of incident roles
 func (c *Client) ListIncidentRoles(opts *ListIncidentRolesOptions) (*ListIncidentRolesResponse, error) {
 	params := url.Values{}
-	
+
 	if opts != nil {
 		if opts.PageSize > 0 {
 			params.Set("page_size", strconv.Itoa(opts.PageSize))
@@ -103,13 +103,13 @@ func (c *Client) ListUsers(opts *ListUsersOptions) (*ListUsersResponse, error) {
 	allUsers := []UserDetailed{}
 	pageSize := 250 // Use max page size
 	after := ""
-	
+
 	// If email filter is provided, don't paginate (API filters server-side)
 	if opts != nil && opts.Email != "" {
 		params := url.Values{}
 		params.Set("page_size", strconv.Itoa(pageSize))
 		params.Set("email", opts.Email)
-		
+
 		respBody, err := c.doRequest("GET", "/users", params, nil)
 		if err != nil {
 			return nil, err
@@ -122,7 +122,7 @@ func (c *Client) ListUsers(opts *ListUsersOptions) (*ListUsersResponse, error) {
 
 		return &response, nil
 	}
-	
+
 	// For non-filtered requests, paginate through all users
 	maxPages := 10 // Safety limit to prevent infinite loops
 	for page := 0; page < maxPages; page++ {
@@ -143,14 +143,14 @@ func (c *Client) ListUsers(opts *ListUsersOptions) (*ListUsersResponse, error) {
 		}
 
 		allUsers = append(allUsers, response.Users...)
-		
+
 		// Check if there are more pages
 		if response.PaginationMeta.After == "" || len(response.Users) == 0 {
 			break
 		}
 		after = response.PaginationMeta.After
 	}
-	
+
 	// Return combined results
 	return &ListUsersResponse{
 		Users: allUsers,

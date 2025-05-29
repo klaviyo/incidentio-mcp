@@ -39,7 +39,7 @@ func (t *ListIncidentRolesTool) InputSchema() map[string]interface{} {
 
 func (t *ListIncidentRolesTool) Execute(args map[string]interface{}) (string, error) {
 	opts := &incidentio.ListIncidentRolesOptions{}
-	
+
 	if pageSize, ok := args["page_size"].(float64); ok {
 		opts.PageSize = int(pageSize)
 	}
@@ -94,11 +94,11 @@ func (t *ListUsersTool) InputSchema() map[string]interface{} {
 
 func (t *ListUsersTool) Execute(args map[string]interface{}) (string, error) {
 	opts := &incidentio.ListUsersOptions{}
-	
+
 	if pageSize, ok := args["page_size"].(float64); ok {
 		opts.PageSize = int(pageSize)
 	}
-	
+
 	if email, ok := args["email"].(string); ok && email != "" {
 		opts.Email = email
 	}
@@ -107,7 +107,7 @@ func (t *ListUsersTool) Execute(args map[string]interface{}) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	
+
 	// Add a helpful message about the results
 	var output string
 	if opts.Email != "" {
@@ -115,10 +115,10 @@ func (t *ListUsersTool) Execute(args map[string]interface{}) (string, error) {
 	} else {
 		output = fmt.Sprintf("Found %d users:\n", len(resp.Users))
 	}
-	
+
 	// Format users in a more readable way
 	for _, user := range resp.Users {
-		output += fmt.Sprintf("\n- Name: %s\n  Email: %s\n  ID: %s\n  Role: %s\n", 
+		output += fmt.Sprintf("\n- Name: %s\n  Email: %s\n  ID: %s\n  Role: %s\n",
 			user.Name, user.Email, user.ID, user.Role)
 	}
 
@@ -127,7 +127,7 @@ func (t *ListUsersTool) Execute(args map[string]interface{}) (string, error) {
 	if err != nil {
 		return output, nil // Return readable output even if JSON fails
 	}
-	
+
 	output += "\n\nRaw JSON response:\n" + string(jsonResult)
 
 	return output, nil
@@ -167,32 +167,31 @@ func (t *AssignIncidentRoleTool) InputSchema() map[string]interface{} {
 				"description": "The user ID to assign the role to",
 			},
 		},
-		"required":                []interface{}{"id", "incident_role_id", "user_id"},
-		"additionalProperties":    false,
+		"required":             []interface{}{"id", "incident_role_id", "user_id"},
+		"additionalProperties": false,
 	}
 }
 
 func (t *AssignIncidentRoleTool) Execute(args map[string]interface{}) (string, error) {
-	// Debug: show ALL parameters we received
 	argDetails := make(map[string]interface{})
 	for key, value := range args {
 		argDetails[key] = value
 	}
-	
+
 	if len(args) == 0 {
 		return "", fmt.Errorf("no parameters provided")
 	}
-	
+
 	incidentID, ok := args["id"].(string)
 	if !ok || incidentID == "" {
 		return "", fmt.Errorf("id parameter is required and must be a non-empty string. Received parameters: %+v", argDetails)
 	}
-	
+
 	roleID, ok := args["incident_role_id"].(string)
 	if !ok {
 		return "", fmt.Errorf("incident_role_id parameter is required")
 	}
-	
+
 	userID, ok := args["user_id"].(string)
 	if !ok {
 		return "", fmt.Errorf("user_id parameter is required")
@@ -224,7 +223,7 @@ func (t *AssignIncidentRoleTool) Execute(args map[string]interface{}) (string, e
 				"role_type":   assignment.Role.RoleType,
 			},
 		}
-		
+
 		if assignment.Assignee != nil {
 			roleData["assignee"] = map[string]interface{}{
 				"id":    assignment.Assignee.ID,
@@ -232,14 +231,14 @@ func (t *AssignIncidentRoleTool) Execute(args map[string]interface{}) (string, e
 				"email": assignment.Assignee.Email,
 			}
 		}
-		
+
 		roleAssignments = append(roleAssignments, roleData)
 	}
 
 	response := map[string]interface{}{
-		"message": fmt.Sprintf("Successfully assigned role to user for incident %s", incident.Name),
-		"incident_id": incident.ID,
-		"incident_name": incident.Name,
+		"message":          fmt.Sprintf("Successfully assigned role to user for incident %s", incident.Name),
+		"incident_id":      incident.ID,
+		"incident_name":    incident.Name,
 		"role_assignments": roleAssignments,
 	}
 
