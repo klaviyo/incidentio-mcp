@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"os/signal"
 	"syscall"
@@ -41,9 +42,8 @@ func (s *MCPServer) registerTools() {
 	// Try to initialize incident.io client
 	client, err := incidentio.NewClient()
 	if err != nil {
-		// If client initialization fails, register only example tool
-		exampleTool := &tools.ExampleTool{}
-		s.tools[exampleTool.Name()] = exampleTool
+		// If client initialization fails, no tools are registered
+		// Don't log to avoid breaking MCP protocol
 		return
 	}
 
@@ -101,7 +101,9 @@ func (s *MCPServer) start(ctx context.Context) {
 							Message: "Parse error",
 						},
 					}
-					encoder.Encode(errorResp)
+					if err := encoder.Encode(errorResp); err != nil {
+						log.Printf("Failed to encode parse error response: %v", err)
+					}
 				}
 				continue
 			}
@@ -117,7 +119,9 @@ func (s *MCPServer) start(ctx context.Context) {
 							Message: "Invalid Request: missing or invalid jsonrpc field",
 						},
 					}
-					encoder.Encode(errorResp)
+					if err := encoder.Encode(errorResp); err != nil {
+						log.Printf("Failed to encode invalid request response: %v", err)
+					}
 				}
 				continue
 			}
@@ -133,7 +137,9 @@ func (s *MCPServer) start(ctx context.Context) {
 
 			response := s.handleMessage(&msg)
 			if response != nil {
-				encoder.Encode(response)
+				if err := encoder.Encode(response); err != nil {
+					log.Printf("Failed to encode response: %v", err)
+				}
 			}
 		}
 	}

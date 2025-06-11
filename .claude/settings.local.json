@@ -41,7 +41,16 @@
       "Bash(./start-mcp-server.sh:*)",
       "Bash(git push:*)",
       "Bash(./test_api.sh:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(cp:*)",
+      "Bash(brew install:*)",
+      "Bash(bfg:*)",
+      "Bash(git gc:*)",
+      "Bash(mkdir:*)",
+      "Bash(golangci-lint run:*)",
+      "Bash(golangci-lint:*)",
+      "Bash(pkill:*)",
+      "Bash(/Users/tomwentworth/incidentio-mcp-golang/test_auth.sh)"
     ],
     "deny": []
   },

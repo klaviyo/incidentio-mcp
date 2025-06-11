@@ -1,3 +1,10 @@
 #!/bin/bash
-export INCIDENT_IO_API_KEY=inc_4f78bf72eb22ce2f6a58be0feb397a4030e1511c8d0eec234759ef83c00e8690
+
+# Check if API key is set
+if [ -z "$INCIDENT_IO_API_KEY" ]; then
+    # Don't output errors to stderr when running under Claude
+    # The server will handle missing API key gracefully
+    :
+fi
+
 exec /Users/tomwentworth/incidentio-mcp-golang/bin/mcp-server

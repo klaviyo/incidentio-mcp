@@ -47,21 +47,20 @@ func (s *Server) Start(ctx context.Context) error {
 			}
 
 			if response != nil {
-				encoder.Encode(response)
+				if err := encoder.Encode(response); err != nil {
+					// Log encoding errors but continue processing
+					fmt.Fprintf(os.Stderr, "Failed to encode response: %v\n", err)
+				}
 			}
 		}
 	}
 }
 
 func (s *Server) registerTools() {
-	// Always register example tool
-	exampleTool := &tools.ExampleTool{}
-	s.tools[exampleTool.Name()] = exampleTool
-
 	// Initialize incident.io client
 	client, err := incidentio.NewClient()
 	if err != nil {
-		// If client initialization fails, we still have the example tool
+		// If client initialization fails, no tools are registered
 		return
 	}
 

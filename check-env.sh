@@ -9,4 +9,4 @@ echo "INCIDENT_IO_API_KEY: ${INCIDENT_IO_API_KEY:+SET}" >&2
 echo "Go version:" >&2
 go version >&2
 echo "Starting MCP server..." >&2
-exec /Users/tomwentworth/incidentio-mcp-golang/bin/mcp-debug 2>>/tmp/mcp-debug.log
+exec "$(dirname "$0")/bin/mcp-debug" 2>>/tmp/mcp-debug.log

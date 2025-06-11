@@ -27,5 +27,5 @@
 - `/internal/server/` - MCP server logic
 
 # Environment Variables
-- INCIDENTIO_API_KEY - Required for API authentication
-- INCIDENTIO_ENDPOINT - Optional, defaults to https://api.incident.io
+- INCIDENT_IO_API_KEY - Required for API authentication
+- INCIDENT_IO_BASE_URL - Optional, defaults to https://api.incident.io/v2
