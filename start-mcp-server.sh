@@ -7,4 +7,4 @@ if [ -z "$INCIDENT_IO_API_KEY" ]; then
     :
 fi
 
-exec /Users/tomwentworth/incidentio-mcp-golang/bin/mcp-server
+exec ./bin/mcp-server

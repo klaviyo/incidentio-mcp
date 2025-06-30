@@ -1,6 +1,5 @@
 #!/bin/bash
 set -e
-cd /Users/tomwentworth/incidentio-mcp-golang
 
 # Load environment variables from .env file if it exists
 if [ -f ".env" ]; then
