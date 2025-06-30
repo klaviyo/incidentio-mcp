@@ -24,6 +24,7 @@ func main() {
 
 	go func() {
 		<-sigChan
+		log.Println("Received interrupt signal, shutting down gracefully...")
 		cancel()
 	}()
 
@@ -67,23 +68,52 @@ func (s *MCPServer) registerTools() {
 }
 
 func (s *MCPServer) start(ctx context.Context) {
+	// Log startup message to stderr (stdout is reserved for MCP protocol)
+	log.SetOutput(os.Stderr)
+	log.Println("Starting incident.io MCP server...")
+	log.Printf("Registered %d tools", len(s.tools))
+	
 	encoder := json.NewEncoder(os.Stdout)
 	decoder := json.NewDecoder(os.Stdin)
+
+	// Channel to receive messages from stdin
+	msgChan := make(chan json.RawMessage, 1)
+	errChan := make(chan error, 1)
+
+	// Start a goroutine to read from stdin
+	go func() {
+		for {
+			var rawMsg json.RawMessage
+			if err := decoder.Decode(&rawMsg); err != nil {
+				errChan <- err
+				return
+			}
+			msgChan <- rawMsg
+		}
+	}()
 
 	for {
 		select {
 		case <-ctx.Done():
+			log.Println("Context cancelled, shutting down server...")
 			return
-		default:
-			var rawMsg json.RawMessage
-			if err := decoder.Decode(&rawMsg); err != nil {
-				if err == io.EOF {
-					return
-				}
-				// Skip malformed JSON silently
-				continue
+		case err := <-errChan:
+			if err == io.EOF {
+				log.Println("stdin closed, shutting down server...")
+				return
 			}
-
+			// Skip malformed JSON silently and restart reader
+			go func() {
+				for {
+					var rawMsg json.RawMessage
+					if err := decoder.Decode(&rawMsg); err != nil {
+						errChan <- err
+						return
+					}
+					msgChan <- rawMsg
+				}
+			}()
+		case rawMsg := <-msgChan:
 			// Try to parse as a proper JSON-RPC message
 			var msg mcp.Message
 			if err := json.Unmarshal(rawMsg, &msg); err != nil {
@@ -229,6 +259,7 @@ func (s *MCPServer) handleToolCall(msg *mcp.Message) *mcp.Message {
 
 	tool, exists := s.tools[toolName]
 	if !exists {
+		log.Printf("Tool not found: %s", toolName)
 		return &mcp.Message{
 			Jsonrpc: "2.0",
 			ID:      msg.ID,
@@ -240,8 +271,10 @@ func (s *MCPServer) handleToolCall(msg *mcp.Message) *mcp.Message {
 	}
 
 	args, _ := params["arguments"].(map[string]interface{})
+	log.Printf("Executing tool: %s", toolName)
 	result, err := tool.Execute(args)
 	if err != nil {
+		log.Printf("Tool execution failed: %s - %v", toolName, err)
 		return &mcp.Message{
 			Jsonrpc: "2.0",
 			ID:      msg.ID,
@@ -251,6 +284,8 @@ func (s *MCPServer) handleToolCall(msg *mcp.Message) *mcp.Message {
 			},
 		}
 	}
+	
+	log.Printf("Tool executed successfully: %s", toolName)
 
 	return &mcp.Message{
 		Jsonrpc: "2.0",
