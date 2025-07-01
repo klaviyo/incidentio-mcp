@@ -105,8 +105,8 @@ Add to your Claude Desktop configuration:
 
 ## 📚 Documentation
 
-- **[Development Guide](DEVELOPMENT.md)** - Setup, testing, and contribution guidelines
-- **[Configuration Guide](CONFIGURATION.md)** - Environment variables and deployment options
+- **[Development Guide](docs/DEVELOPMENT.md)** - Setup, testing, and contribution guidelines
+- **[Configuration Guide](docs/CONFIGURATION.md)** - Environment variables and deployment options
 
 ## 🔧 Troubleshooting
 
@@ -128,7 +128,7 @@ export INCIDENT_IO_DEBUG=1
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please see our [Development Guide](DEVELOPMENT.md) for details on setup, testing, and contribution guidelines.
+Contributions are welcome! Please see our [Development Guide](docs/DEVELOPMENT.md) for details on setup, testing, and contribution guidelines.
 
 ## 📄 License
 
