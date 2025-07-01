@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/tomwentworth/incidentio-mcp-golang/internal/incidentio"
+	"github.com/incident-io/incidentio-mcp-golang/internal/incidentio"
 )
 
 // ListCatalogTypesTool lists available catalog types

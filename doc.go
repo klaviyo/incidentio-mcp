@@ -22,6 +22,6 @@ Usage:
 The server communicates via JSON-RPC over stdin/stdout, following the
 MCP specification for tool discovery and execution.
 
-For more information, see: https://github.com/twentworth12/incidentio-mcp-golang
+For more information, see: https://github.com/incident-io/incidentio-mcp-golang
 */
 package incidentiomcp

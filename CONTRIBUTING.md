@@ -55,7 +55,7 @@ git clone https://github.com/your-username/incidentio-mcp-golang.git
 cd incidentio-mcp-golang
 
 # Add upstream remote
-git remote add upstream https://github.com/twentworth12/incidentio-mcp-golang.git
+git remote add upstream https://github.com/incident-io/incidentio-mcp-golang.git
 
 # Install dependencies
 go mod download

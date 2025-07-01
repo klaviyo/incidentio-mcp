@@ -10,9 +10,9 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/tomwentworth/incidentio-mcp-golang/internal/incidentio"
-	"github.com/tomwentworth/incidentio-mcp-golang/internal/tools"
-	"github.com/tomwentworth/incidentio-mcp-golang/pkg/mcp"
+	"github.com/incident-io/incidentio-mcp-golang/internal/incidentio"
+	"github.com/incident-io/incidentio-mcp-golang/internal/tools"
+	"github.com/incident-io/incidentio-mcp-golang/pkg/mcp"
 )
 
 func main() {

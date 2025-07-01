@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/tomwentworth/incidentio-mcp-golang/internal/incidentio"
+	"github.com/incident-io/incidentio-mcp-golang/internal/incidentio"
 )
 
 // ListIncidentStatusesTool lists available incident statuses
