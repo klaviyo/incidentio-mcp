@@ -50,7 +50,13 @@
       "Bash(golangci-lint run:*)",
       "Bash(golangci-lint:*)",
       "Bash(pkill:*)",
-      "Bash(/Users/tomwentworth/incidentio-mcp-golang/test_auth.sh)"
+      "Bash(/Users/tomwentworth/incidentio-mcp-golang/test_auth.sh)",
+      "Bash(gh pr create:*)",
+      "Bash(git remote add:*)",
+      "Bash(gh auth:*)",
+      "Bash(go fmt:*)",
+      "Bash(git commit:*)",
+      "Bash(git reset:*)"
     ],
     "deny": []
   },
