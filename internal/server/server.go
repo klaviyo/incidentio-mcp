@@ -110,6 +110,11 @@ func (s *Server) registerTools() {
 	// Register Alert Source and Event tools
 	s.tools["list_alert_sources"] = tools.NewListAlertSourcesTool(client)
 	s.tools["create_alert_event"] = tools.NewCreateAlertEventTool(client)
+
+	// Register Catalog tools
+	s.tools["list_catalog_types"] = tools.NewListCatalogTypesTool(client)
+	s.tools["list_catalog_entries"] = tools.NewListCatalogEntriesTool(client)
+	s.tools["update_catalog_entry"] = tools.NewUpdateCatalogEntryTool(client)
 }
 
 func (s *Server) handleMessage(msg *mcp.Message) (*mcp.Message, error) {

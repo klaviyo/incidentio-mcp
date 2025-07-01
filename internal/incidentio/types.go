@@ -270,3 +270,71 @@ type ListResponse struct {
 		TotalCount int    `json:"total_count"`
 	} `json:"pagination_meta"`
 }
+
+// CatalogType represents a catalog type in incident.io
+type CatalogType struct {
+	ID          string                 `json:"id"`
+	Name        string                 `json:"name"`
+	Description string                 `json:"description"`
+	TypeName    string                 `json:"type_name"`
+	Color       string                 `json:"color"`
+	Icon        string                 `json:"icon"`
+	Annotations map[string]interface{} `json:"annotations"`
+	Attributes  []CatalogAttribute     `json:"attributes"`
+	CreatedAt   time.Time              `json:"created_at"`
+	UpdatedAt   time.Time              `json:"updated_at"`
+}
+
+// CatalogAttribute represents an attribute of a catalog type
+type CatalogAttribute struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+	Type string `json:"type"`
+}
+
+// CatalogEntry represents a catalog entry in incident.io
+type CatalogEntry struct {
+	ID              string                                `json:"id"`
+	Name            string                                `json:"name"`
+	Aliases         []string                              `json:"aliases"`
+	CatalogTypeID   string                                `json:"catalog_type_id"`
+	AttributeValues map[string]CatalogEntryAttributeValue `json:"attribute_values"`
+	ExternalID      string                                `json:"external_id"`
+	Rank            int                                   `json:"rank"`
+	CreatedAt       time.Time                             `json:"created_at"`
+	UpdatedAt       time.Time                             `json:"updated_at"`
+}
+
+// CatalogEntryAttributeValue represents an attribute value in a catalog entry
+type CatalogEntryAttributeValue struct {
+	ArrayValue []CatalogEntryAttributeValueItem `json:"array_value,omitempty"`
+	Value      *CatalogEntryAttributeValueItem  `json:"value,omitempty"`
+}
+
+// CatalogEntryAttributeValueItem represents a single attribute value item
+type CatalogEntryAttributeValueItem struct {
+	Literal string `json:"literal,omitempty"`
+	ID      string `json:"id,omitempty"`
+}
+
+// ListCatalogTypesResponse represents the response from listing catalog types
+type ListCatalogTypesResponse struct {
+	CatalogTypes []CatalogType `json:"catalog_types"`
+	ListResponse
+}
+
+// ListCatalogEntriesResponse represents the response from listing catalog entries
+type ListCatalogEntriesResponse struct {
+	CatalogEntries []CatalogEntry `json:"catalog_entries"`
+	ListResponse
+}
+
+// UpdateCatalogEntryRequest represents a request to update a catalog entry
+type UpdateCatalogEntryRequest struct {
+	Name             string                                `json:"name,omitempty"`
+	Aliases          []string                              `json:"aliases,omitempty"`
+	AttributeValues  map[string]CatalogEntryAttributeValue `json:"attribute_values,omitempty"`
+	ExternalID       string                                `json:"external_id,omitempty"`
+	Rank             int                                   `json:"rank,omitempty"`
+	UpdateAttributes []string                              `json:"update_attributes,omitempty"`
+}

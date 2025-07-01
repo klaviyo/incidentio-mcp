@@ -65,6 +65,11 @@ func (s *MCPServer) registerTools() {
 	s.tools["assign_incident_role"] = tools.NewAssignIncidentRoleTool(client)
 	s.tools["list_severities"] = tools.NewListSeveritiesTool(client)
 	s.tools["get_severity"] = tools.NewGetSeverityTool(client)
+
+	// Register Catalog tools
+	s.tools["list_catalog_types"] = tools.NewListCatalogTypesTool(client)
+	s.tools["list_catalog_entries"] = tools.NewListCatalogEntriesTool(client)
+	s.tools["update_catalog_entry"] = tools.NewUpdateCatalogEntryTool(client)
 }
 
 func (s *MCPServer) start(ctx context.Context) {
@@ -72,7 +77,7 @@ func (s *MCPServer) start(ctx context.Context) {
 	log.SetOutput(os.Stderr)
 	log.Println("Starting incident.io MCP server...")
 	log.Printf("Registered %d tools", len(s.tools))
-	
+
 	encoder := json.NewEncoder(os.Stdout)
 	decoder := json.NewDecoder(os.Stdin)
 
@@ -284,7 +289,7 @@ func (s *MCPServer) handleToolCall(msg *mcp.Message) *mcp.Message {
 			},
 		}
 	}
-	
+
 	log.Printf("Tool executed successfully: %s", toolName)
 
 	return &mcp.Message{
