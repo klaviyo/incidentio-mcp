@@ -1,14 +1,14 @@
 # incident.io MCP Server
 
-> ⚠️ **UNSUPPORTED PROJECT** ⚠️  
-> This repository is largely vibe-coded and unsupported. Built by our CMO and an enterprising Solutions Engineer with questionable coding practices but undeniable enthusiasm. Use at your own risk! 🚀
-
 [![CI](https://github.com/incident-io/incidentio-mcp-golang/actions/workflows/ci.yml/badge.svg)](https://github.com/incident-io/incidentio-mcp-golang/actions/workflows/ci.yml)
 [![Go Report Card](https://goreportcard.com/badge/github.com/incident-io/incidentio-mcp-golang)](https://goreportcard.com/report/github.com/incident-io/incidentio-mcp-golang)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Go Version](https://img.shields.io/badge/Go-1.21+-blue.svg)](https://go.dev/dl/)
 
 A GoLang implementation of an MCP (Model Context Protocol) server for incident.io, providing tools to interact with the incident.io V2 API.
+
+> ⚠️ **Fair warning!** ⚠️  
+> This repository is largely vibe-coded and unsupported. Built by our CMO and an enterprising Solutions Engineer with questionable coding practices but undeniable enthusiasm. Use at your own risk! 🚀
 
 ## 🚀 Quick Start
 
@@ -83,16 +83,19 @@ This will create a binary in the `bin/` directory.
 ### Running
 
 Set your incident.io API key:
+
 ```bash
 export INCIDENT_IO_API_KEY=your-api-key
 ```
 
 Then run the server:
+
 ```bash
 make run
 ```
 
 Or after building:
+
 ```bash
 ./bin/mcp-server
 ```
@@ -109,6 +112,7 @@ make test
 2. Register the tool in `server.registerTools()` method in `internal/server/server.go`
 
 Example tool implementation:
+
 ```go
 type MyTool struct{}
 
@@ -139,6 +143,7 @@ func (t *MyTool) Execute(args map[string]interface{}) (string, error) {
 ## Available Tools
 
 ### Incident Management
+
 - `list_incidents` - List incidents with optional filters (status, severity)
 - `get_incident` - Get details of a specific incident by ID
 - `create_incident` - Create a new incident
@@ -148,16 +153,19 @@ func (t *MyTool) Execute(args map[string]interface{}) (string, error) {
 - `list_incident_types` - List available incident types
 
 ### Incident Updates
+
 - `list_incident_updates` - List incident status updates/messages
 - `get_incident_update` - Get a specific incident update
 - `create_incident_update` - Post a new status update to an incident
 - `delete_incident_update` - Delete an incident update
 
 ### Severity Management
+
 - `list_severities` - List available severity levels
 - `get_severity` - Get details of a specific severity
 
 ### Alert Management
+
 - `list_alerts` - List alerts with optional filters
 - `get_alert` - Get details of a specific alert by ID
 - `list_alerts_for_incident` - List alerts associated with a specific incident
@@ -165,31 +173,37 @@ func (t *MyTool) Execute(args map[string]interface{}) (string, error) {
 - `create_alert_event` - Create an alert event
 
 ### Alert Routing
+
 - `list_alert_routes` - List alert routes with optional pagination
 - `get_alert_route` - Get details of a specific alert route
 - `create_alert_route` - Create a new alert route with conditions and escalations
 - `update_alert_route` - Update an alert route's configuration
 
 ### Workflow Management
+
 - `list_workflows` - List workflows with optional pagination
 - `get_workflow` - Get details of a specific workflow
 - `update_workflow` - Update a workflow's configuration
 
 ### Action Management
+
 - `list_actions` - List actions with optional filters (incident_id, status)
 - `get_action` - Get details of a specific action by ID
 
 ### Roles and Users
+
 - `list_available_incident_roles` - List available incident roles
 - `list_users` - List users in the organization
 - `assign_incident_role` - Assign a role to a user for an incident
 
 ### Testing
+
 - `example_tool` - A simple echo tool for testing
 
 ## MCP Protocol
 
 This server implements the Model Context Protocol (MCP) for communication with AI assistants. The server:
+
 - Communicates via JSON-RPC over stdin/stdout
 - Supports tool registration and execution
 - Follows the MCP 2024-11-05 protocol version
