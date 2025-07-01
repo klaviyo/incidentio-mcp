@@ -1,6 +1,9 @@
 #!/bin/bash
 set -e
 
+# Get the directory where this script is located
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 # Load environment variables from .env file if it exists
 if [ -f ".env" ]; then
     export $(grep -v '^#' .env | xargs)
@@ -20,4 +23,4 @@ if [ ! -f "./bin/mcp-server" ]; then
 fi
 
 # Run the server
-exec ./bin/mcp-server
+exec "$SCRIPT_DIR/bin/mcp-server"
