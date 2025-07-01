@@ -105,8 +105,12 @@ Add to your Claude Desktop configuration:
 
 ## 📚 Documentation
 
-- **[Development Guide](DEVELOPMENT.md)** - Setup, testing, and contribution guidelines
-- **[Configuration Guide](CONFIGURATION.md)** - Environment variables and deployment options
+- **[Development Guide](docs/DEVELOPMENT.md)** - Setup, testing, and contribution guidelines
+- **[Configuration Guide](docs/CONFIGURATION.md)** - Environment variables and deployment options
+- **[Contributing Guide](docs/CONTRIBUTING.md)** - How to contribute to the project
+- **[Testing Guide](docs/TESTING.md)** - Testing documentation and best practices
+- **[Deployment Guide](docs/DEPLOYMENT.md)** - Deployment instructions and considerations
+- **[Code of Conduct](docs/CODE_OF_CONDUCT.md)** - Community guidelines and standards
 
 ## 🔧 Troubleshooting
 
@@ -128,7 +132,7 @@ export INCIDENT_IO_DEBUG=1
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please see our [Development Guide](DEVELOPMENT.md) for details on setup, testing, and contribution guidelines.
+Contributions are welcome! Please see our [Development Guide](docs/DEVELOPMENT.md) for details on setup, testing, and contribution guidelines.
 
 ## 📄 License
 
