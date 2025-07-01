@@ -58,7 +58,8 @@
       "Bash(git commit:*)",
       "Bash(git reset:*)",
       "Bash(env)",
-      "WebFetch(domain:docs.anthropic.com)"
+      "WebFetch(domain:docs.anthropic.com)",
+      "Bash(git checkout:*)"
     ],
     "deny": []
   },

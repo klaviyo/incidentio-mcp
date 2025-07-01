@@ -1,7 +1,10 @@
 # incident.io MCP Server
 
-[![CI](https://github.com/twentworth12/incidentio-mcp-golang/actions/workflows/ci.yml/badge.svg)](https://github.com/twentworth12/incidentio-mcp-golang/actions/workflows/ci.yml)
-[![Go Report Card](https://goreportcard.com/badge/github.com/twentworth12/incidentio-mcp-golang)](https://goreportcard.com/report/github.com/twentworth12/incidentio-mcp-golang)
+> ⚠️ **UNSUPPORTED PROJECT** ⚠️  
+> This repository is largely vibe-coded and unsupported. Built by our CMO and an enterprising Solutions Engineer with questionable coding practices but undeniable enthusiasm. Use at your own risk! 🚀
+
+[![CI](https://github.com/incident-io/incidentio-mcp-golang/actions/workflows/ci.yml/badge.svg)](https://github.com/incident-io/incidentio-mcp-golang/actions/workflows/ci.yml)
+[![Go Report Card](https://goreportcard.com/badge/github.com/incident-io/incidentio-mcp-golang)](https://goreportcard.com/report/github.com/incident-io/incidentio-mcp-golang)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Go Version](https://img.shields.io/badge/Go-1.21+-blue.svg)](https://go.dev/dl/)
 
@@ -11,7 +14,7 @@ A GoLang implementation of an MCP (Model Context Protocol) server for incident.i
 
 ```bash
 # Clone the repository
-git clone https://github.com/twentworth12/incidentio-mcp-golang.git
+git clone https://github.com/incident-io/incidentio-mcp-golang.git
 cd incidentio-mcp-golang
 
 # Copy environment variables
