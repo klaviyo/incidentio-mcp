@@ -11,7 +11,7 @@
 ### 1. Clone and Build
 
 ```bash
-git clone https://github.com/tomwentworth/incidentio-mcp-golang.git
+git clone https://github.com/incident-io/incidentio-mcp-golang.git
 cd incidentio-mcp-golang
 go build -o bin/mcp-server ./cmd/mcp-server
 ```

@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/tomwentworth/incidentio-mcp-golang/internal/incidentio"
+	"github.com/incident-io/incidentio-mcp-golang/internal/incidentio"
 )
 
 // CreateIncidentEnhancedTool creates a new incident with smart defaults
