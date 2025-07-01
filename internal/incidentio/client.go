@@ -66,7 +66,7 @@ func (c *Client) DoRequest(method, path string, params url.Values, body interfac
 func (c *Client) doRequest(method, path string, params url.Values, body interface{}) ([]byte, error) {
 	endpoint := c.baseURL + path
 
-	if params != nil && len(params) > 0 {
+	if len(params) > 0 {
 		endpoint += "?" + params.Encode()
 	}
 

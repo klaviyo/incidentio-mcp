@@ -102,7 +102,7 @@ func (t *GetSeverityTool) Execute(args map[string]interface{}) (string, error) {
 		return "", fmt.Errorf("failed to get severity: %w", err)
 	}
 
-	output := fmt.Sprintf("Severity Details:\n\n")
+	output := "Severity Details:\n\n"
 	output += fmt.Sprintf("ID: %s\n", severity.ID)
 	output += fmt.Sprintf("Name: %s\n", severity.Name)
 	if severity.Description != "" {

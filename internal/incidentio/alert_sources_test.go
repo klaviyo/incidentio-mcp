@@ -87,9 +87,10 @@ func TestListAlertSources(t *testing.T) {
 					// Check query parameters
 					if tt.params != nil {
 						if tt.params.PageSize > 0 {
-							if tt.name == "successful list alert sources" {
+							switch tt.name {
+							case "successful list alert sources":
 								assertEqual(t, "10", req.URL.Query().Get("page_size"))
-							} else if tt.name == "with pagination" {
+							case "with pagination":
 								assertEqual(t, "5", req.URL.Query().Get("page_size"))
 							}
 						}

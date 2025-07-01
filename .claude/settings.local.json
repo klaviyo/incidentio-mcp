@@ -56,7 +56,9 @@
       "Bash(gh auth:*)",
       "Bash(go fmt:*)",
       "Bash(git commit:*)",
-      "Bash(git reset:*)"
+      "Bash(git reset:*)",
+      "Bash(env)",
+      "WebFetch(domain:docs.anthropic.com)"
     ],
     "deny": []
   },

@@ -176,7 +176,7 @@ func (t *ListCatalogEntriesTool) Execute(args map[string]interface{}) (string, e
 		}
 		output += fmt.Sprintf("Rank: %d\n", entry.Rank)
 		if len(entry.AttributeValues) > 0 {
-			output += fmt.Sprintf("Attributes:\n")
+			output += "Attributes:\n"
 			for key, value := range entry.AttributeValues {
 				if value.Value != nil {
 					if value.Value.Literal != "" {
@@ -368,7 +368,7 @@ func (t *UpdateCatalogEntryTool) Execute(args map[string]interface{}) (string, e
 		return "", fmt.Errorf("failed to update catalog entry: %w", err)
 	}
 
-	output := fmt.Sprintf("Updated catalog entry:\n\n")
+	output := "Updated catalog entry:\n\n"
 	output += fmt.Sprintf("ID: %s\n", result.ID)
 	output += fmt.Sprintf("Name: %s\n", result.Name)
 	if len(result.Aliases) > 0 {

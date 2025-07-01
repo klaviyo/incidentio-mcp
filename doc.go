@@ -24,4 +24,4 @@ MCP specification for tool discovery and execution.
 
 For more information, see: https://github.com/twentworth12/incidentio-mcp-golang
 */
-package main
+package incidentiomcp
