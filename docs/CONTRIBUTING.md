@@ -96,7 +96,7 @@ make build
 ### Documentation
 
 * Update the README.md with details of changes to the interface
-* Update the TESTING.md if you add new test cases
+* Update the docs/TESTING.md if you add new test cases
 * Add or update comments in the code
 * Update tool descriptions if functionality changes
 

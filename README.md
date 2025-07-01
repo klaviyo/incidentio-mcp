@@ -107,6 +107,10 @@ Add to your Claude Desktop configuration:
 
 - **[Development Guide](docs/DEVELOPMENT.md)** - Setup, testing, and contribution guidelines
 - **[Configuration Guide](docs/CONFIGURATION.md)** - Environment variables and deployment options
+- **[Contributing Guide](docs/CONTRIBUTING.md)** - How to contribute to the project
+- **[Testing Guide](docs/TESTING.md)** - Testing documentation and best practices
+- **[Deployment Guide](docs/DEPLOYMENT.md)** - Deployment instructions and considerations
+- **[Code of Conduct](docs/CODE_OF_CONDUCT.md)** - Community guidelines and standards
 
 ## 🔧 Troubleshooting
 
