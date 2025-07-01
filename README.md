@@ -196,6 +196,12 @@ func (t *MyTool) Execute(args map[string]interface{}) (string, error) {
 - `list_users` - List users in the organization
 - `assign_incident_role` - Assign a role to a user for an incident
 
+### Catalog Management
+
+- `list_catalog_types` - List available catalog types (filtered for Custom* types)
+- `list_catalog_entries` - List catalog entries for a specific catalog type with pagination
+- `update_catalog_entry` - Update catalog entry details and attribute values
+
 ### Testing
 
 - `example_tool` - A simple echo tool for testing
@@ -281,6 +287,16 @@ Here are some example prompts you can use with Claude once the MCP server is con
 "List alerts for incident INC-123"
 "Get details for alert alert_01ABC123"
 "Show me alerts that triggered in the last hour"
+```
+
+### Catalog Management
+
+```
+"Show me all available catalog types"
+"List entries for the Custom Services catalog type"
+"List all services in our catalog with their attributes"
+"Update the Payments service catalog entry with new team information"
+"Find all catalog entries that match 'database' in the identifier"
 ```
 
 ### Complex Workflows
