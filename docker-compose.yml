@@ -1,0 +1,8 @@
+services:
+  mcp-server:
+    build: .
+    environment:
+      - INCIDENT_IO_API_KEY=${INCIDENT_IO_API_KEY}
+      - INCIDENT_IO_BASE_URL=${INCIDENT_IO_BASE_URL:-https://api.incident.io/v2}
+    stdin_open: true
+    tty: false
