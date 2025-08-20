@@ -54,6 +54,22 @@ Add to your Claude Desktop configuration:
   }
 }
 ```
+Or, if you'd prefer to run everything in Docker:
+
+```json
+{
+    "mcpServers": {
+      "incidentio": {
+        "command": "docker-compose",
+        "args": ["-f", "/path/to/docker-compose.yml", "run", "--rm", "-T", "mcp-server"],
+        "env": {
+          "INCIDENT_IO_API_KEY": "your-api-key"
+        }
+      }
+    }
+}
+```
+
 
 ## Available Tools
 
