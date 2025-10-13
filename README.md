@@ -121,11 +121,16 @@ Or, if you'd prefer to run everything in Docker:
 
 ## 📚 Documentation
 
+### Getting Started
+- **[HTTP Server Guide](docs/HTTP_SERVER.md)** - HTTP/SSE server architecture, multi-arch builds, and deployment
+- **[Quick Reference](docs/QUICK_REFERENCE.md)** - Common commands and configuration patterns
 - **[Development Guide](docs/DEVELOPMENT.md)** - Setup, testing, and contribution guidelines
 - **[Configuration Guide](docs/CONFIGURATION.md)** - Environment variables and deployment options
-- **[Contributing Guide](docs/CONTRIBUTING.md)** - How to contribute to the project
+
+### Advanced Topics
 - **[Testing Guide](docs/TESTING.md)** - Testing documentation and best practices
 - **[Deployment Guide](docs/DEPLOYMENT.md)** - Deployment instructions and considerations
+- **[Contributing Guide](docs/CONTRIBUTING.md)** - How to contribute to the project
 - **[Code of Conduct](docs/CODE_OF_CONDUCT.md)** - Community guidelines and standards
 
 ## 🔧 Troubleshooting
