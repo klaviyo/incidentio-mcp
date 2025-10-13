@@ -4,18 +4,14 @@
 
 ### Standard Build
 ```bash
-# stdio mode (default, lightweight)
-docker build -t incidentio-mcp:stdio .
-
-# HTTP server mode
-docker build --target http-server -t incidentio-mcp:http-server .
+# Unified image supporting both stdio and HTTP modes
+docker build -t incidentio-mcp:latest .
 ```
 
 ### Multi-Architecture Build
 ```bash
 # Single command for multiple architectures
 docker buildx build \
-  --target http-server \
   --platform linux/amd64,linux/arm64 \
   --tag your-registry/incidentio-mcp:v0.0.1 \
   --push \
@@ -26,7 +22,6 @@ docker buildx build \
 ```bash
 # Build AMD64
 docker buildx build \
-  --target http-server \
   --platform linux/amd64 \
   --tag your-registry/incidentio-mcp:v0.0.1-amd64 \
   --push \
@@ -34,7 +29,6 @@ docker buildx build \
 
 # Build ARM64
 docker buildx build \
-  --target http-server \
   --platform linux/arm64 \
   --tag your-registry/incidentio-mcp:v0.0.1-arm64 \
   --push \
@@ -53,17 +47,23 @@ docker buildx imagetools create \
 
 ### Development (Local)
 ```bash
-# Basic HTTP server
+# Basic HTTP server (default mode)
 docker run --rm -p 8080:8080 \
   -e INCIDENT_IO_API_KEY="your-api-key" \
-  incidentio-mcp:http-server
+  incidentio-mcp:latest
+
+# stdio mode
+docker run --rm \
+  -e MCP_TRANSPORT_MODE=stdio \
+  -e INCIDENT_IO_API_KEY="your-api-key" \
+  incidentio-mcp:latest
 
 # With debug logging
 docker run --rm -p 8080:8080 \
   -e INCIDENT_IO_API_KEY="your-api-key" \
   -e MCP_DEBUG=1 \
   -e INCIDENT_IO_DEBUG=1 \
-  incidentio-mcp:http-server
+  incidentio-mcp:latest
 ```
 
 ### Production
@@ -94,7 +94,7 @@ docker run --rm -it \
   -p 8080:8080 \
   -e INCIDENT_IO_API_KEY="your-api-key" \
   --entrypoint /bin/bash \
-  incidentio-mcp:http-server
+  incidentio-mcp:latest
 
 # Custom entrypoint with debug
 docker run --rm \
@@ -256,7 +256,7 @@ docker run --rm \
 version: '3.8'
 services:
   mcp-http:
-    image: incidentio-mcp:http-server
+    image: incidentio-mcp:latest
     ports:
       - "8080:8080"
     user: "1001:1001"

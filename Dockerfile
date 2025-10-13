@@ -16,25 +16,8 @@ RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o mcp-server ./cmd/
 # Build the MCP HTTP proxy binary
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o mcp-http-proxy ./mcp-http-proxy.go
 
-# Final stage - stdio mode (default, lightweight)
-FROM alpine:latest AS stdio
-
-# Install ca-certificates for HTTPS requests
-RUN apk --no-cache add ca-certificates
-
-WORKDIR /root/
-
-# Copy the binary from builder stage
-COPY --from=builder /app/mcp-server .
-
-# Make binary executable
-RUN chmod +x ./mcp-server
-
-# Set the entrypoint
-ENTRYPOINT ["./mcp-server"]
-
-# HTTP server stage - includes both binaries and entrypoint script
-FROM alpine:latest AS http-server
+# Final stage - supports both stdio and HTTP modes via entrypoint
+FROM alpine:latest
 
 # Install runtime dependencies and create non-root user
 RUN apk add --no-cache ca-certificates bash && \
@@ -56,9 +39,9 @@ RUN chmod +x ./mcp-server ./mcp-http-proxy ./entrypoint.sh
 # Expose HTTP port (only used in HTTP mode)
 EXPOSE 8080
 
-# Environment variables for configuration
+# Default to HTTP mode, but can be overridden to stdio
 ENV MCP_TRANSPORT_MODE=http
 ENV MCP_HTTP_PORT=8080
 
-# Use entrypoint script to support multiple modes
+# Use entrypoint script to support both stdio and HTTP modes
 ENTRYPOINT ["./entrypoint.sh"]

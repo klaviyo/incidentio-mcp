@@ -74,16 +74,13 @@ docker buildx inspect --bootstrap
 
 ### Build Process
 
-The `Dockerfile` provides two build targets:
-
-1. **stdio** - Lightweight image (default)
-2. **http-server** - Full-featured HTTP/SSE image
+The `Dockerfile` creates a unified image that supports both stdio and HTTP modes via the entrypoint script.
 
 #### Single Architecture Build
 
 ```bash
 # Build for current platform
-docker build --target http-server -t incidentio-mcp:http-server .
+docker build -t incidentio-mcp:latest .
 ```
 
 #### Multi-Architecture Build
@@ -91,7 +88,6 @@ docker build --target http-server -t incidentio-mcp:http-server .
 ```bash
 # Build for multiple architectures and push to registry
 docker buildx build \
-  --target http-server \
   --platform linux/amd64,linux/arm64 \
   --tag 439508887365.dkr.ecr.us-east-1.amazonaws.com/incidentio-mcp:v0.0.1 \
   --push \
@@ -102,21 +98,19 @@ docker buildx build \
 - `linux/amd64` - x86_64 processors (Intel, AMD)
 - `linux/arm64` - ARM64 processors (Apple Silicon, AWS Graviton)
 
-#### Create Multi-Arch Manifest
+#### Create Multi-Arch Manifest (Alternative)
 
 If building separate images for each platform:
 
 ```bash
 # Build and tag for each architecture
 docker buildx build \
-  --target http-server \
   --platform linux/amd64 \
   --tag 439508887365.dkr.ecr.us-east-1.amazonaws.com/incidentio-mcp:v0.0.1-amd64 \
   --push \
   .
 
 docker buildx build \
-  --target http-server \
   --platform linux/arm64 \
   --tag 439508887365.dkr.ecr.us-east-1.amazonaws.com/incidentio-mcp:v0.0.1-arm64 \
   --push \
@@ -136,14 +130,54 @@ docker buildx imagetools create \
 
 ---
 
-## Running the HTTP Server
+## Running the Server
+
+### stdio Mode Compatibility
+
+The unified image fully supports stdio mode for use with MCP clients like Claude Desktop:
+
+**Verification:**
+```bash
+# Test stdio protocol
+echo '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"test","version":"1.0"}}}' | \
+  docker run --rm -i -e MCP_TRANSPORT_MODE=stdio -e INCIDENT_IO_API_KEY=test incidentio-mcp:latest
+```
+
+**Expected output:**
+```json
+{"jsonrpc":"2.0","result":{"capabilities":{"tools":{"listChanged":false}},"protocolVersion":"2024-11-05","serverInfo":{"name":"incidentio-mcp-server","version":"1.0.0"}},"id":1}
+```
+
+**Claude Desktop configuration:**
+```json
+{
+  "mcpServers": {
+    "incidentio": {
+      "command": "docker",
+      "args": ["run", "--rm", "-i", "-e", "MCP_TRANSPORT_MODE=stdio", "incidentio-mcp:latest"],
+      "env": {
+        "INCIDENT_IO_API_KEY": "your-api-key"
+      }
+    }
+  }
+}
+```
+
+### HTTP Server Mode
 
 ### Basic Usage
 
 ```bash
+# HTTP mode (default)
 docker run --rm -p 8080:8080 \
   -e INCIDENT_IO_API_KEY="your-api-key-here" \
-  incidentio-mcp:http-server
+  incidentio-mcp:latest
+
+# stdio mode
+docker run --rm \
+  -e MCP_TRANSPORT_MODE=stdio \
+  -e INCIDENT_IO_API_KEY="your-api-key-here" \
+  incidentio-mcp:latest
 ```
 
 ### Production Configuration
