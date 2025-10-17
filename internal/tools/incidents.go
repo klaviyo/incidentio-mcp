@@ -31,9 +31,11 @@ USAGE WORKFLOW:
 3. Multiple severity IDs can be provided to match any of them (OR logic)
 4. Status filters can be combined with severity filters
 5. Use 'fields' parameter to reduce context usage by selecting only needed fields
+6. For manual pagination, use 'after' parameter with the value from pagination_meta.after in previous response
 
 PARAMETERS:
 - page_size: Number of results (default 25, max 250). Set to 0 or omit for auto-pagination.
+- after: Pagination cursor from previous response's pagination_meta.after (for manual pagination)
 - status: Array of status category values (triage, live, closed, post_incident)
 - severity: Array of severity IDs (e.g., ["01HXYZ..."]) - Use list_severities first to get valid IDs
 - fields: Comma-separated list of fields to include in response (reduces context usage)
@@ -47,11 +49,17 @@ STATUS CATEGORIES:
 - closed: Completed incidents
 - post_incident: Post-incident follow-up work
 
+PAGINATION:
+- Auto-pagination: Omit page_size or set to 0 to fetch all results automatically
+- Manual pagination: Set page_size, then use pagination_meta.after from response in next request
+- Example manual pagination: First request {"page_size": 3}, then {"page_size": 3, "after": "01HXYZ..."}
+
 EXAMPLES:
 - List all active incidents: {"status": ["live"]}
 - List critical incidents: First call list_severities, then use severity ID like {"severity": ["01HXYZ..."]}
 - List active high-severity incidents: {"status": ["live"], "severity": ["sev_1", "sev_2"]}
 - List with selected fields: {"status": ["live"], "fields": "id,name,severity.name,incident_status.category"}
+- Manual pagination: {"page_size": 10, "after": "01K7RPHSXGPM1V07NPW8V6J6RZ"}
 
 IMPORTANT: Severity parameter requires severity IDs, not severity names. Always call list_severities first to discover available severity IDs.`
 }
@@ -64,6 +72,10 @@ func (t *ListIncidentsTool) InputSchema() map[string]interface{} {
 				"type":        "integer",
 				"description": "Number of results per page (max 250, default 25). Set to 0 or omit for automatic pagination through all results.",
 				"default":     25,
+			},
+			"after": map[string]interface{}{
+				"type":        "string",
+				"description": "Pagination cursor for fetching the next page. Use the value from pagination_meta.after in the previous response. Only used with manual pagination (when page_size > 0).",
 			},
 			"status": map[string]interface{}{
 				"type":        "array",
@@ -88,6 +100,10 @@ func (t *ListIncidentsTool) Execute(args map[string]interface{}) (string, error)
 
 	if pageSize, ok := args["page_size"].(float64); ok {
 		opts.PageSize = int(pageSize)
+	}
+
+	if after, ok := args["after"].(string); ok {
+		opts.After = after
 	}
 
 	if statuses, ok := args["status"].([]interface{}); ok {

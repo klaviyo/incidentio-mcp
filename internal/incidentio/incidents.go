@@ -69,6 +69,7 @@ func (c *Client) ListIncidents(opts *ListIncidentsOptions) (*ListIncidentsRespon
 
 	// Paginate through all results
 	maxPages := 10 // Safety limit
+	totalCount := 0
 	for page := 0; page < maxPages; page++ {
 		params := url.Values{}
 		// Copy base parameters
@@ -93,6 +94,11 @@ func (c *Client) ListIncidents(opts *ListIncidentsOptions) (*ListIncidentsRespon
 
 		allIncidents = append(allIncidents, response.Incidents...)
 
+		// Capture total_count from first response
+		if page == 0 {
+			totalCount = response.PaginationMeta.TotalCount
+		}
+
 		// Check if there are more pages
 		if response.PaginationMeta.After == "" || len(response.Incidents) == 0 {
 			break
@@ -100,7 +106,7 @@ func (c *Client) ListIncidents(opts *ListIncidentsOptions) (*ListIncidentsRespon
 		after = response.PaginationMeta.After
 	}
 
-	// Return combined results
+	// Return combined results with correct total_count
 	return &ListIncidentsResponse{
 		Incidents: allIncidents,
 		ListResponse: ListResponse{
@@ -110,7 +116,7 @@ func (c *Client) ListIncidents(opts *ListIncidentsOptions) (*ListIncidentsRespon
 				TotalCount int    `json:"total_count"`
 			}{
 				PageSize:   pageSize,
-				TotalCount: 0,
+				TotalCount: totalCount,
 			},
 		},
 	}, nil
