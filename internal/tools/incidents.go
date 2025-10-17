@@ -34,18 +34,24 @@ USAGE WORKFLOW:
 
 PARAMETERS:
 - page_size: Number of results (default 25, max 250). Set to 0 or omit for auto-pagination.
-- status: Array of status values (triage, active, resolved, closed)
+- status: Array of status category values (triage, live, closed, post_incident)
 - severity: Array of severity IDs (e.g., ["01HXYZ..."]) - Use list_severities first to get valid IDs
 - fields: Comma-separated list of fields to include in response (reduces context usage)
   * Top-level: "id,name,summary,reference"
   * Nested: "severity.name,incident_status.category,incident_type.name"
   * Omit to return all fields
 
+STATUS CATEGORIES:
+- triage: Incidents being triaged
+- live: Active incidents (investigating, identified, fixing, monitoring)
+- closed: Completed incidents
+- post_incident: Post-incident follow-up work
+
 EXAMPLES:
-- List all active incidents: {"status": ["active"]}
+- List all active incidents: {"status": ["live"]}
 - List critical incidents: First call list_severities, then use severity ID like {"severity": ["01HXYZ..."]}
-- List active high-severity incidents: {"status": ["active"], "severity": ["sev_1", "sev_2"]}
-- List with selected fields: {"status": ["active"], "fields": "id,name,severity.name,incident_status.category"}
+- List active high-severity incidents: {"status": ["live"], "severity": ["sev_1", "sev_2"]}
+- List with selected fields: {"status": ["live"], "fields": "id,name,severity.name,incident_status.category"}
 
 IMPORTANT: Severity parameter requires severity IDs, not severity names. Always call list_severities first to discover available severity IDs.`
 }
@@ -62,7 +68,7 @@ func (t *ListIncidentsTool) InputSchema() map[string]interface{} {
 			"status": map[string]interface{}{
 				"type":        "array",
 				"items":       map[string]interface{}{"type": "string"},
-				"description": "Filter by incident status values. Valid values: triage, active, resolved, closed. Multiple values will match any of them (OR logic). Example: [\"active\", \"triage\"]",
+				"description": "Filter by incident status category. Valid values: triage, live, closed, post_incident. Multiple values will match any of them (OR logic). Example: [\"live\", \"triage\"]",
 			},
 			"severity": map[string]interface{}{
 				"type":        "array",
