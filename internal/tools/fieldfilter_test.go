@@ -307,3 +307,186 @@ func TestFilterFields_JSONFormatting(t *testing.T) {
 		t.Error("Expected indented JSON")
 	}
 }
+
+// Bug fix tests: Collection-aware filtering
+func TestFilterFields_IncidentsCollection_BugFix(t *testing.T) {
+	// Simulate actual ListIncidentsResponse structure
+	data := map[string]interface{}{
+		"incidents": []interface{}{
+			map[string]interface{}{
+				"id":        "01HXYZ",
+				"name":      "Test Incident",
+				"reference": "INC-123",
+				"summary":   "A test incident",
+			},
+			map[string]interface{}{
+				"id":        "01HXAB",
+				"name":      "Another Incident",
+				"reference": "INC-124",
+				"summary":   "Another test",
+			},
+		},
+		"pagination_meta": map[string]interface{}{
+			"page_size": 25,
+		},
+	}
+
+	// Bug: This used to fail because "name" was treated as a top-level field
+	// Fix: Now it filters each incident in the collection
+	result, err := FilterFields(data, "name")
+	if err != nil {
+		t.Fatalf("FilterFields failed: %v", err)
+	}
+
+	var parsed map[string]interface{}
+	if err := json.Unmarshal([]byte(result), &parsed); err != nil {
+		t.Fatalf("Failed to parse result: %v", err)
+	}
+
+	// Should have incidents array and pagination_meta
+	incidents, ok := parsed["incidents"].([]interface{})
+	if !ok {
+		t.Fatal("Expected incidents array")
+	}
+
+	if len(incidents) != 2 {
+		t.Errorf("Expected 2 incidents, got %d", len(incidents))
+	}
+
+	// Check first incident has only "name" field
+	incident1 := incidents[0].(map[string]interface{})
+	if _, hasName := incident1["name"]; !hasName {
+		t.Error("Expected incident to have 'name' field")
+	}
+	if _, hasID := incident1["id"]; hasID {
+		t.Error("Expected incident to NOT have 'id' field (filtered out)")
+	}
+	if _, hasRef := incident1["reference"]; hasRef {
+		t.Error("Expected incident to NOT have 'reference' field (filtered out)")
+	}
+
+	// Verify pagination_meta is preserved
+	if _, hasPagination := parsed["pagination_meta"]; !hasPagination {
+		t.Error("Expected pagination_meta to be preserved")
+	}
+}
+
+func TestFilterFields_IncidentsCollection_MultipleFields(t *testing.T) {
+	data := map[string]interface{}{
+		"incidents": []interface{}{
+			map[string]interface{}{
+				"id":        "01HXYZ",
+				"name":      "Test Incident",
+				"reference": "INC-123",
+				"summary":   "A test incident",
+				"severity": map[string]interface{}{
+					"id":   "sev_1",
+					"name": "Critical",
+					"rank": 1,
+				},
+			},
+		},
+		"pagination_meta": map[string]interface{}{
+			"page_size": 25,
+		},
+	}
+
+	// Filter for "id,name,severity.name"
+	result, err := FilterFields(data, "id,name,severity.name")
+	if err != nil {
+		t.Fatalf("FilterFields failed: %v", err)
+	}
+
+	var parsed map[string]interface{}
+	if err := json.Unmarshal([]byte(result), &parsed); err != nil {
+		t.Fatalf("Failed to parse result: %v", err)
+	}
+
+	incidents := parsed["incidents"].([]interface{})
+	incident := incidents[0].(map[string]interface{})
+
+	// Should have id, name, and severity
+	if _, hasID := incident["id"]; !hasID {
+		t.Error("Expected incident to have 'id' field")
+	}
+	if _, hasName := incident["name"]; !hasName {
+		t.Error("Expected incident to have 'name' field")
+	}
+	if _, hasSeverity := incident["severity"]; !hasSeverity {
+		t.Error("Expected incident to have 'severity' field")
+	}
+
+	// Severity should only have "name" field
+	severity := incident["severity"].(map[string]interface{})
+	if _, hasName := severity["name"]; !hasName {
+		t.Error("Expected severity to have 'name' field")
+	}
+	if _, hasID := severity["id"]; hasID {
+		t.Error("Expected severity to NOT have 'id' field (filtered out)")
+	}
+	if _, hasRank := severity["rank"]; hasRank {
+		t.Error("Expected severity to NOT have 'rank' field (filtered out)")
+	}
+
+	// Should NOT have reference or summary
+	if _, hasRef := incident["reference"]; hasRef {
+		t.Error("Expected incident to NOT have 'reference' field")
+	}
+}
+
+func TestFilterFields_AlertsCollection_BugFix(t *testing.T) {
+	// Simulate actual ListAlertsResponse structure
+	data := map[string]interface{}{
+		"alerts": []interface{}{
+			map[string]interface{}{
+				"id":     "alert_1",
+				"title":  "Test Alert",
+				"status": "firing",
+			},
+			map[string]interface{}{
+				"id":     "alert_2",
+				"title":  "Another Alert",
+				"status": "resolved",
+			},
+		},
+		"pagination_meta": map[string]interface{}{
+			"page_size": 25,
+		},
+	}
+
+	// Bug: This used to fail because "title" was treated as a top-level field
+	// Fix: Now it filters each alert in the collection
+	result, err := FilterFields(data, "title")
+	if err != nil {
+		t.Fatalf("FilterFields failed: %v", err)
+	}
+
+	var parsed map[string]interface{}
+	if err := json.Unmarshal([]byte(result), &parsed); err != nil {
+		t.Fatalf("Failed to parse result: %v", err)
+	}
+
+	// Should have alerts array
+	alerts, ok := parsed["alerts"].([]interface{})
+	if !ok {
+		t.Fatal("Expected alerts array")
+	}
+
+	if len(alerts) != 2 {
+		t.Errorf("Expected 2 alerts, got %d", len(alerts))
+	}
+
+	// Check first alert has only "title" field
+	alert1 := alerts[0].(map[string]interface{})
+	if _, hasTitle := alert1["title"]; !hasTitle {
+		t.Error("Expected alert to have 'title' field")
+	}
+	if _, hasID := alert1["id"]; hasID {
+		t.Error("Expected alert to NOT have 'id' field (filtered out)")
+	}
+
+	// Verify pagination_meta is preserved
+	if _, hasPagination := parsed["pagination_meta"]; !hasPagination {
+		t.Error("Expected pagination_meta to be preserved")
+	}
+}

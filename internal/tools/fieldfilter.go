@@ -12,6 +12,9 @@ import (
 // - Nested fields with dot notation: "severity.name", "incident_status.category"
 // - Array elements are filtered recursively
 //
+// For API responses with collection fields (incidents, alerts), the field filter
+// is automatically applied to the items in the collection, not the response wrapper.
+//
 // Example:
 //   fields := "id,name,severity.name,incident_status.category"
 //   filtered, err := FilterFields(data, fields)
@@ -39,7 +42,47 @@ func FilterFields(data interface{}, fieldsStr string) (string, error) {
 		return "", fmt.Errorf("failed to unmarshal data: %w", err)
 	}
 
-	// Filter the data
+	// Check if this is a collection response (incidents, alerts, etc.)
+	// If so, apply filtering to the collection items, not the response wrapper
+	if dataMap, ok := rawData.(map[string]interface{}); ok {
+		if incidents, hasIncidents := dataMap["incidents"]; hasIncidents {
+			// Filter the incidents array
+			filteredIncidents := filterObject(incidents, fields)
+			// Preserve the response structure with filtered incidents
+			filtered := map[string]interface{}{
+				"incidents": filteredIncidents,
+			}
+			// Include pagination_meta if present
+			if paginationMeta, hasPagination := dataMap["pagination_meta"]; hasPagination {
+				filtered["pagination_meta"] = paginationMeta
+			}
+			result, err := json.MarshalIndent(filtered, "", "  ")
+			if err != nil {
+				return "", fmt.Errorf("failed to marshal filtered data: %w", err)
+			}
+			return string(result), nil
+		}
+
+		if alerts, hasAlerts := dataMap["alerts"]; hasAlerts {
+			// Filter the alerts array
+			filteredAlerts := filterObject(alerts, fields)
+			// Preserve the response structure with filtered alerts
+			filtered := map[string]interface{}{
+				"alerts": filteredAlerts,
+			}
+			// Include pagination_meta if present
+			if paginationMeta, hasPagination := dataMap["pagination_meta"]; hasPagination {
+				filtered["pagination_meta"] = paginationMeta
+			}
+			result, err := json.MarshalIndent(filtered, "", "  ")
+			if err != nil {
+				return "", fmt.Errorf("failed to marshal filtered data: %w", err)
+			}
+			return string(result), nil
+		}
+	}
+
+	// Default behavior: filter the object directly
 	filtered := filterObject(rawData, fields)
 
 	// Marshal the filtered result
