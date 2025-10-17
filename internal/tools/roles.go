@@ -21,7 +21,21 @@ func (t *ListIncidentRolesTool) Name() string {
 }
 
 func (t *ListIncidentRolesTool) Description() string {
-	return "List all available incident roles that can be assigned to users"
+	return `List all available incident roles that can be assigned to users during incidents.
+
+USAGE WORKFLOW:
+1. Call to see all role types (incident lead, communications lead, etc.)
+2. Use role IDs when assigning roles with assign_incident_role
+3. Review role names, descriptions, and types
+
+PARAMETERS:
+- page_size: Number of results (default 25, max 250)
+
+EXAMPLES:
+- List all roles: {}
+- List with pagination: {"page_size": 50}
+
+IMPORTANT: Role IDs from this tool are required for the assign_incident_role tool.`
 }
 
 func (t *ListIncidentRolesTool) InputSchema() map[string]interface{} {
@@ -71,7 +85,22 @@ func (t *ListUsersTool) Name() string {
 }
 
 func (t *ListUsersTool) Description() string {
-	return "List all users available for incident role assignment (automatically paginated to return ALL users)"
+	return `List all users available for incident role assignment (automatically paginated).
+
+USAGE WORKFLOW:
+1. Call to see all users in your organization
+2. Optional: Filter by email to find specific user
+3. Use user IDs when assigning roles with assign_incident_role
+
+PARAMETERS:
+- page_size: Number of results (default 250, max 250)
+- email: Optional. Filter users by email address
+
+EXAMPLES:
+- List all users: {}
+- Find by email: {"email": "user@example.com"}
+
+IMPORTANT: User IDs from this tool are required for the assign_incident_role tool.`
 }
 
 func (t *ListUsersTool) InputSchema() map[string]interface{} {
@@ -147,7 +176,22 @@ func (t *AssignIncidentRoleTool) Name() string {
 }
 
 func (t *AssignIncidentRoleTool) Description() string {
-	return "Assign a specific incident role to a user for an incident"
+	return `Assign a specific incident role to a user for an incident.
+
+USAGE WORKFLOW:
+1. First call 'list_available_incident_roles' to get role IDs
+2. Call 'list_users' to get user IDs (or filter by email)
+3. Call this tool with incident ID, role ID, and user ID
+
+PARAMETERS:
+- id: Required. The incident ID to assign role for
+- incident_role_id: Required. The role ID (from list_available_incident_roles)
+- user_id: Required. The user ID (from list_users)
+
+EXAMPLES:
+- Assign lead: {"id": "01HXYZ...", "incident_role_id": "role_123", "user_id": "user_456"}
+
+IMPORTANT: Use list_available_incident_roles and list_users to discover valid IDs before calling this tool.`
 }
 
 func (t *AssignIncidentRoleTool) InputSchema() map[string]interface{} {

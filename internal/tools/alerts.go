@@ -21,7 +21,21 @@ func (t *ListAlertsTool) Name() string {
 }
 
 func (t *ListAlertsTool) Description() string {
-	return "List alerts from incident.io with optional filters"
+	return `List alerts from incident.io with optional status filtering.
+
+USAGE WORKFLOW:
+1. Call without filters to see all alerts
+2. Filter by status to see alerts in specific states
+3. Use alert IDs with get_alert for detailed information
+
+PARAMETERS:
+- page_size: Number of results (default 25, max 250). Set to 0 or omit for auto-pagination.
+- status: Array of status values to filter by - Multiple values match any (OR logic)
+
+EXAMPLES:
+- List all alerts: {}
+- List firing alerts: {"status": ["firing"]}
+- List resolved alerts: {"status": ["resolved"]}`
 }
 
 func (t *ListAlertsTool) InputSchema() map[string]interface{} {
@@ -84,7 +98,18 @@ func (t *GetAlertTool) Name() string {
 }
 
 func (t *GetAlertTool) Description() string {
-	return "Get details of a specific alert by ID"
+	return `Get detailed information about a specific alert.
+
+USAGE WORKFLOW:
+1. Get alert ID from list_alerts or list_alerts_for_incident
+2. Call this tool for complete alert details
+3. Review status, metadata, and routing information
+
+PARAMETERS:
+- id: Required. The alert ID to retrieve
+
+EXAMPLES:
+- Get alert: {"id": "alert_123"}`
 }
 
 func (t *GetAlertTool) InputSchema() map[string]interface{} {
@@ -133,7 +158,20 @@ func (t *ListAlertsForIncidentTool) Name() string {
 }
 
 func (t *ListAlertsForIncidentTool) Description() string {
-	return "List alerts associated with a specific incident"
+	return `List all alerts that have been associated with a specific incident.
+
+USAGE WORKFLOW:
+1. Get incident ID from list_incidents or get_incident
+2. Call this tool to see all alerts linked to that incident
+3. Review alert details to understand what triggered the incident
+
+PARAMETERS:
+- incident_id: Required. The incident ID to list alerts for
+- page_size: Number of results (default 25, max 250)
+
+EXAMPLES:
+- List alerts for incident: {"incident_id": "01HXYZ..."}
+- List with pagination: {"incident_id": "01HXYZ...", "page_size": 50}`
 }
 
 func (t *ListAlertsForIncidentTool) InputSchema() map[string]interface{} {

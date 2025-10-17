@@ -117,7 +117,18 @@ func (t *GetIncidentTool) Name() string {
 }
 
 func (t *GetIncidentTool) Description() string {
-	return "Get details of a specific incident by ID"
+	return `Get detailed information about a specific incident.
+
+USAGE WORKFLOW:
+1. Get incident ID from list_incidents
+2. Call this tool for complete incident details
+3. Review all fields including status, severity, timeline, and assignments
+
+PARAMETERS:
+- incident_id: Required. The incident ID to retrieve
+
+EXAMPLES:
+- Get incident: {"incident_id": "01HXYZ..."}`
 }
 
 func (t *GetIncidentTool) InputSchema() map[string]interface{} {
@@ -171,7 +182,29 @@ func (t *CreateIncidentTool) Name() string {
 }
 
 func (t *CreateIncidentTool) Description() string {
-	return "Create a new incident in incident.io"
+	return `Create a new incident in incident.io with automatic Slack channel creation.
+
+USAGE WORKFLOW:
+1. Prepare incident details (name is required, other fields optional)
+2. Optional but recommended: Call list_severities, list_incident_types, and list_incident_statuses to get valid IDs
+3. Create incident with desired configuration
+4. Tool provides helpful suggestions if required IDs are missing
+
+PARAMETERS:
+- name: Required. The incident title/name
+- summary: Optional. Detailed incident description
+- severity_id: Optional. Severity ID (from list_severities)
+- incident_type_id: Optional. Type ID (from list_incident_types)
+- incident_status_id: Optional. Status ID (from list_incident_statuses)
+- mode: Optional. Incident mode (standard, retrospective, tutorial), default: standard
+- visibility: Optional. Visibility (public, private), default: public
+- slack_channel_name_override: Optional. Custom Slack channel name
+
+EXAMPLES:
+- Minimal incident: {"name": "API outage in production"}
+- Full configuration: {"name": "Database unavailable", "severity_id": "01HXYZ...", "incident_type_id": "01HABC...", "incident_status_id": "01HDEF...", "summary": "Primary database not responding"}
+
+IMPORTANT: Tool automatically generates idempotency keys. If severity, type, or status IDs are not provided, helpful error messages suggest using list_severities, list_incident_types, and list_incident_statuses.`
 }
 
 func (t *CreateIncidentTool) InputSchema() map[string]interface{} {
@@ -315,7 +348,27 @@ func (t *UpdateIncidentTool) Name() string {
 }
 
 func (t *UpdateIncidentTool) Description() string {
-	return "Update an existing incident"
+	return `Update an existing incident's properties (name, summary, status, severity).
+
+USAGE WORKFLOW:
+1. Get incident ID from list_incidents or get_incident
+2. Prepare updated values for fields you want to change
+3. Call this tool with incident ID and new values
+4. At least one field must be updated
+
+PARAMETERS:
+- incident_id: Required. The incident ID to update
+- name: Optional. New incident name
+- summary: Optional. New incident summary
+- incident_status_id: Optional. New status ID (from list_incident_statuses)
+- severity_id: Optional. New severity ID (from list_severities)
+
+EXAMPLES:
+- Update status: {"incident_id": "01HXYZ...", "incident_status_id": "status_456"}
+- Update severity: {"incident_id": "01HXYZ...", "severity_id": "sev_789"}
+- Update multiple fields: {"incident_id": "01HXYZ...", "name": "Updated name", "summary": "Updated summary"}
+
+IMPORTANT: At least one field to update must be provided.`
 }
 
 func (t *UpdateIncidentTool) InputSchema() map[string]interface{} {

@@ -21,7 +21,21 @@ func (t *ListIncidentUpdatesTool) Name() string {
 }
 
 func (t *ListIncidentUpdatesTool) Description() string {
-	return "List incident updates (status messages posted during an incident)"
+	return `List incident updates (status messages and communications posted during incidents).
+
+USAGE WORKFLOW:
+1. Call without filter to see all updates across incidents
+2. Filter by incident_id to see timeline for specific incident
+3. Review updates to understand incident progression
+
+PARAMETERS:
+- incident_id: Optional. Filter updates by specific incident ID
+- page_size: Number of results (default 25, max 250)
+
+EXAMPLES:
+- List all updates: {}
+- List for incident: {"incident_id": "01HXYZ..."}
+- Paginated list: {"incident_id": "01HXYZ...", "page_size": 50}`
 }
 
 func (t *ListIncidentUpdatesTool) InputSchema() map[string]interface{} {
@@ -79,7 +93,18 @@ func (t *GetIncidentUpdateTool) Name() string {
 }
 
 func (t *GetIncidentUpdateTool) Description() string {
-	return "Get details of a specific incident update by ID"
+	return `Get detailed information about a specific incident update.
+
+USAGE WORKFLOW:
+1. Get update ID from list_incident_updates
+2. Call this tool for complete update details
+3. Review message content, author, and timestamp
+
+PARAMETERS:
+- id: Required. The incident update ID to retrieve
+
+EXAMPLES:
+- Get update: {"id": "update_123"}`
 }
 
 func (t *GetIncidentUpdateTool) InputSchema() map[string]interface{} {
@@ -129,7 +154,20 @@ func (t *CreateIncidentUpdateTool) Name() string {
 }
 
 func (t *CreateIncidentUpdateTool) Description() string {
-	return "Create a new incident update (status message) for an incident"
+	return `Create a new incident update (status message) to communicate progress during an incident.
+
+USAGE WORKFLOW:
+1. Get incident ID from list_incidents or get_incident
+2. Compose status message describing current state or actions taken
+3. Post update to incident timeline and notifications
+
+PARAMETERS:
+- incident_id: Required. The incident ID to post update to
+- message: Required. The status message text
+
+EXAMPLES:
+- Post update: {"incident_id": "01HXYZ...", "message": "Database failover completed. Services recovering."}
+- Brief update: {"incident_id": "01HXYZ...", "message": "Investigating root cause"}`
 }
 
 func (t *CreateIncidentUpdateTool) InputSchema() map[string]interface{} {
@@ -193,7 +231,18 @@ func (t *DeleteIncidentUpdateTool) Name() string {
 }
 
 func (t *DeleteIncidentUpdateTool) Description() string {
-	return "Delete an incident update"
+	return `Delete an incident update (removes it from incident timeline).
+
+USAGE WORKFLOW:
+1. Get update ID from list_incident_updates
+2. Call this tool to remove the update
+3. Update will be deleted from timeline and notifications
+
+PARAMETERS:
+- id: Required. The incident update ID to delete
+
+EXAMPLES:
+- Delete update: {"id": "update_123"}`
 }
 
 func (t *DeleteIncidentUpdateTool) InputSchema() map[string]interface{} {
