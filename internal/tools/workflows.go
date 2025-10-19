@@ -21,7 +21,20 @@ func (t *ListWorkflowsTool) Name() string {
 }
 
 func (t *ListWorkflowsTool) Description() string {
-	return "List workflows from incident.io with optional pagination"
+	return `List workflows configured in incident.io for automation and orchestration.
+
+USAGE WORKFLOW:
+1. Call to see all configured workflows
+2. Review workflow names, states, and configurations
+3. Use workflow IDs with get_workflow for detailed configuration
+
+PARAMETERS:
+- page_size: Number of results per page (1-250)
+- after: Pagination cursor for next page
+
+EXAMPLES:
+- List all workflows: {}
+- List with pagination: {"page_size": 50, "after": "cursor_abc"}`
 }
 
 func (t *ListWorkflowsTool) InputSchema() map[string]interface{} {
@@ -80,7 +93,18 @@ func (t *GetWorkflowTool) Name() string {
 }
 
 func (t *GetWorkflowTool) Description() string {
-	return "Get details of a specific workflow by ID"
+	return `Get detailed configuration of a specific workflow.
+
+USAGE WORKFLOW:
+1. Get workflow ID from list_workflows
+2. Call this tool for complete workflow details
+3. Review triggers, actions, and state configuration
+
+PARAMETERS:
+- id: Required. The workflow ID to retrieve
+
+EXAMPLES:
+- Get workflow: {"id": "wf_123"}`
 }
 
 func (t *GetWorkflowTool) InputSchema() map[string]interface{} {
@@ -131,7 +155,23 @@ func (t *UpdateWorkflowTool) Name() string {
 }
 
 func (t *UpdateWorkflowTool) Description() string {
-	return "Update a workflow's configuration"
+	return `Update an existing workflow's configuration (name, enabled state, or state data).
+
+USAGE WORKFLOW:
+1. First call 'get_workflow' to see current configuration
+2. Modify desired fields
+3. Call update with workflow ID and new configuration
+
+PARAMETERS:
+- id: Required. The workflow ID to update
+- name: Optional. New name for the workflow
+- enabled: Optional. Enable or disable the workflow
+- state: Optional. State configuration object for the workflow
+
+EXAMPLES:
+- Disable workflow: {"id": "wf_123", "enabled": false}
+- Rename workflow: {"id": "wf_123", "name": "New Workflow Name"}
+- Update state: {"id": "wf_123", "state": {"key": "value"}}`
 }
 
 func (t *UpdateWorkflowTool) InputSchema() map[string]interface{} {

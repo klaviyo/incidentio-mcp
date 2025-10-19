@@ -23,7 +23,20 @@ func (t *ListCatalogTypesTool) Name() string {
 }
 
 func (t *ListCatalogTypesTool) Description() string {
-	return "List available catalog types in incident.io (filtered to only include types with TypeName starting with 'Custom' - case insensitive)"
+	return `List available catalog types in incident.io (automatically filtered to Custom* types only).
+
+USAGE WORKFLOW:
+1. Call to see all custom catalog types configured in your organization
+2. Review type IDs, names, and attributes for each catalog type
+3. Use catalog type IDs with list_catalog_entries to see entries
+
+PARAMETERS:
+- None required
+
+EXAMPLES:
+- List all custom catalog types: {}
+
+IMPORTANT: This tool automatically filters to show only catalog types with TypeName starting with 'Custom' (case-insensitive). This filtering helps focus on user-defined catalogs rather than system catalogs.`
 }
 
 func (t *ListCatalogTypesTool) InputSchema() map[string]interface{} {
@@ -101,7 +114,24 @@ func (t *ListCatalogEntriesTool) Name() string {
 }
 
 func (t *ListCatalogEntriesTool) Description() string {
-	return "List catalog entries for a given catalog type"
+	return `List catalog entries for a specific catalog type.
+
+USAGE WORKFLOW:
+1. First call 'list_catalog_types' to get available catalog type IDs
+2. Call this tool with a catalog_type_id to see all entries
+3. Optional: Filter by identifier to find specific entries
+4. Review entry IDs, names, and attribute values
+
+PARAMETERS:
+- catalog_type_id: Required. The catalog type ID (from list_catalog_types)
+- page_size: Optional. Number of entries per page (default: 25)
+- after: Optional. Pagination cursor for next page
+- identifier: Optional. Filter by identifier string
+
+EXAMPLES:
+- List all entries: {"catalog_type_id": "01HXYZ..."}
+- Filter by identifier: {"catalog_type_id": "01HXYZ...", "identifier": "prod-api"}
+- Paginated list: {"catalog_type_id": "01HXYZ...", "page_size": 50}`
 }
 
 func (t *ListCatalogEntriesTool) InputSchema() map[string]interface{} {
@@ -235,7 +265,27 @@ func (t *UpdateCatalogEntryTool) Name() string {
 }
 
 func (t *UpdateCatalogEntryTool) Description() string {
-	return "Update a catalog entry by ID"
+	return `Update an existing catalog entry's properties and attribute values.
+
+USAGE WORKFLOW:
+1. First call 'list_catalog_entries' to find the entry you want to update
+2. Prepare updated values (name, aliases, rank, attribute_values)
+3. Call this tool with the entry ID and new values
+4. For attributes, specify which attributes to update in update_attributes array
+
+PARAMETERS:
+- id: Required. The catalog entry ID to update
+- name: Optional. New name for the entry
+- aliases: Optional. Array of alias strings
+- external_id: Optional. External system ID
+- rank: Optional. Sort order/rank integer
+- attribute_values: Optional. Object mapping attribute IDs to values
+- update_attributes: Optional. Array of attribute IDs to update
+
+EXAMPLES:
+- Update name: {"id": "entry_123", "name": "New Name"}
+- Update attributes: {"id": "entry_123", "attribute_values": {"attr_abc": {"value": {"literal": "new value"}}}, "update_attributes": ["attr_abc"]}
+- Update rank: {"id": "entry_123", "rank": 10}`
 }
 
 func (t *UpdateCatalogEntryTool) InputSchema() map[string]interface{} {

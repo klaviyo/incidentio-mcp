@@ -21,7 +21,20 @@ func (t *ListAlertRoutesTool) Name() string {
 }
 
 func (t *ListAlertRoutesTool) Description() string {
-	return "List alert routes from incident.io with optional pagination"
+	return `List alert routes that define how alerts are routed and escalated.
+
+USAGE WORKFLOW:
+1. Call to see all configured alert routes
+2. Review conditions, escalations, and grouping keys for each route
+3. Use route IDs with get_alert_route for detailed configuration
+
+PARAMETERS:
+- page_size: Number of results per page (1-250)
+- after: Pagination cursor for next page
+
+EXAMPLES:
+- List all routes: {}
+- List with custom page size: {"page_size": 50}`
 }
 
 func (t *ListAlertRoutesTool) InputSchema() map[string]interface{} {
@@ -80,7 +93,18 @@ func (t *GetAlertRouteTool) Name() string {
 }
 
 func (t *GetAlertRouteTool) Description() string {
-	return "Get details of a specific alert route by ID"
+	return `Get detailed configuration of a specific alert route.
+
+USAGE WORKFLOW:
+1. Get route ID from list_alert_routes
+2. Call this tool for complete route configuration
+3. Review conditions, escalations, and grouping settings
+
+PARAMETERS:
+- id: Required. The alert route ID to retrieve
+
+EXAMPLES:
+- Get route: {"id": "route_123"}`
 }
 
 func (t *GetAlertRouteTool) InputSchema() map[string]interface{} {
@@ -131,7 +155,25 @@ func (t *CreateAlertRouteTool) Name() string {
 }
 
 func (t *CreateAlertRouteTool) Description() string {
-	return "Create a new alert route in incident.io"
+	return `Create a new alert route to define how alerts are routed and escalated based on conditions.
+
+USAGE WORKFLOW:
+1. Define routing conditions (field, operation, value)
+2. Configure escalation bindings (which escalation paths to use)
+3. Optional: Set grouping keys to group similar alerts
+4. Optional: Configure incident template for auto-creation
+
+PARAMETERS:
+- name: Required. Name for the alert route
+- enabled: Optional. Whether route is active (default: true)
+- conditions: Required. Array of condition objects with field, operation, value
+- escalations: Required. Array of escalation bindings with id and level
+- grouping_keys: Optional. Array of field names to group alerts by
+- template: Optional. Incident template for auto-creating incidents
+
+EXAMPLES:
+- Basic route: {"name": "Production alerts", "conditions": [{"field": "severity", "operation": "equals", "value": "critical"}], "escalations": [{"id": "esc_123", "level": 1}]}
+- With grouping: {"name": "Service alerts", "conditions": [...], "escalations": [...], "grouping_keys": ["service_name", "environment"]}`
 }
 
 func (t *CreateAlertRouteTool) InputSchema() map[string]interface{} {
@@ -288,7 +330,25 @@ func (t *UpdateAlertRouteTool) Name() string {
 }
 
 func (t *UpdateAlertRouteTool) Description() string {
-	return "Update an alert route's configuration"
+	return `Update an existing alert route's configuration (name, enabled status, conditions, escalations).
+
+USAGE WORKFLOW:
+1. First call 'get_alert_route' to see current configuration
+2. Modify desired fields
+3. Call update with route ID and new configuration
+
+PARAMETERS:
+- id: Required. The alert route ID to update
+- name: Optional. New name for the route
+- enabled: Optional. Enable or disable the route
+- conditions: Optional. New array of routing conditions
+- escalations: Optional. New array of escalation bindings
+- grouping_keys: Optional. New array of grouping keys
+- template: Optional. New incident template
+
+EXAMPLES:
+- Disable route: {"id": "route_123", "enabled": false}
+- Update conditions: {"id": "route_123", "conditions": [{"field": "severity", "operation": "equals", "value": "high"}]}`
 }
 
 func (t *UpdateAlertRouteTool) InputSchema() map[string]interface{} {

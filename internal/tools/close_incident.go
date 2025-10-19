@@ -21,7 +21,21 @@ func (t *CloseIncidentTool) Name() string {
 }
 
 func (t *CloseIncidentTool) Description() string {
-	return "Close an incident by setting its status to 'Closed'"
+	return `Close an incident by transitioning it to 'Closed' status with automatic workflow handling.
+
+USAGE WORKFLOW:
+1. Get incident ID from list_incidents or get_incident
+2. Call this tool with the incident ID
+3. Tool checks if already closed to avoid errors
+4. Attempts direct closure or provides guidance if workflow restrictions apply
+
+PARAMETERS:
+- id: Required. The incident ID to close
+
+EXAMPLES:
+- Close incident: {"id": "01HXYZ..."}
+
+IMPORTANT: incident.io may require incidents to go through specific status transitions before closing (e.g., Triage → Active → Monitoring → Closed). This tool attempts direct closure and provides helpful guidance if workflow restrictions prevent it.`
 }
 
 func (t *CloseIncidentTool) InputSchema() map[string]interface{} {

@@ -21,7 +21,26 @@ func (t *CreateAlertEventTool) Name() string {
 }
 
 func (t *CreateAlertEventTool) Description() string {
-	return "Create an alert event in incident.io"
+	return `Create an alert event in incident.io to trigger alert workflows and routing.
+
+USAGE WORKFLOW:
+1. First call 'list_alert_sources' to get available alert source IDs
+2. Prepare alert details (title, description, metadata)
+3. Call this tool with the alert source ID and alert details
+4. Alert will be routed according to configured alert routes
+
+PARAMETERS:
+- alert_source_id: Required. ID of the alert source (use list_alert_sources to find)
+- title: Required. Short title describing the alert
+- description: Optional. Detailed description of the alert
+- deduplication_key: Optional. Unique key to prevent duplicate alerts
+- status: Optional. Alert status (firing or resolved, default: firing)
+- metadata: Optional. Additional key-value data for the alert
+
+EXAMPLES:
+- Create simple alert: {"alert_source_id": "01HXYZ...", "title": "API latency high"}
+- Create with deduplication: {"alert_source_id": "01HXYZ...", "title": "CPU threshold", "deduplication_key": "cpu-alert-123"}
+- Resolve existing alert: {"alert_source_id": "01HXYZ...", "title": "CPU threshold", "status": "resolved", "deduplication_key": "cpu-alert-123"}`
 }
 
 func (t *CreateAlertEventTool) InputSchema() map[string]interface{} {

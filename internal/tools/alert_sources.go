@@ -21,7 +21,21 @@ func (t *ListAlertSourcesTool) Name() string {
 }
 
 func (t *ListAlertSourcesTool) Description() string {
-	return "List available alert sources in incident.io"
+	return `List available alert sources that can receive and process alert events.
+
+USAGE WORKFLOW:
+1. Call to see all configured alert sources
+2. Use alert source IDs when creating alert events with create_alert_event
+
+PARAMETERS:
+- page_size: Number of results per page (1-250)
+- after: Pagination cursor for next page
+
+EXAMPLES:
+- List all sources: {}
+- List with pagination: {"page_size": 50, "after": "cursor_abc"}
+
+IMPORTANT: Alert source IDs from this tool are required for the create_alert_event tool.`
 }
 
 func (t *ListAlertSourcesTool) InputSchema() map[string]interface{} {

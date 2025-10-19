@@ -21,7 +21,20 @@ func (t *ListIncidentTypesTool) Name() string {
 }
 
 func (t *ListIncidentTypesTool) Description() string {
-	return "List available incident types"
+	return `List all available incident types configured in your organization.
+
+USAGE WORKFLOW:
+1. Call to see all incident type options
+2. Use incident type IDs when creating incidents with create_incident
+3. Review names and descriptions to choose appropriate type
+
+PARAMETERS:
+- None required
+
+EXAMPLES:
+- List all types: {}
+
+IMPORTANT: Incident type IDs from this tool are required for the create_incident tool. One type is typically marked as default.`
 }
 
 func (t *ListIncidentTypesTool) InputSchema() map[string]interface{} {

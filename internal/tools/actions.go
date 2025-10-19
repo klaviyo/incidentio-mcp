@@ -21,7 +21,23 @@ func (t *ListActionsTool) Name() string {
 }
 
 func (t *ListActionsTool) Description() string {
-	return "List actions from incident.io with optional filters"
+	return `List actions (follow-up tasks) from incident.io with optional filtering.
+
+USAGE WORKFLOW:
+1. Call without filters to see all actions across incidents
+2. Filter by incident_id to see actions for a specific incident
+3. Filter by status to see only outstanding, completed, or deleted actions
+4. Combine filters for more specific results
+
+PARAMETERS:
+- page_size: Number of results (default 25, max 250). Set to 0 or omit for auto-pagination.
+- incident_id: Filter actions by specific incident ID
+- status: Array of status values (outstanding, completed, deleted) - Multiple values match any (OR logic)
+
+EXAMPLES:
+- List all outstanding actions: {"status": ["outstanding"]}
+- List actions for incident: {"incident_id": "01HXYZ..."}
+- List outstanding actions for incident: {"incident_id": "01HXYZ...", "status": ["outstanding"]}`
 }
 
 func (t *ListActionsTool) InputSchema() map[string]interface{} {
@@ -92,7 +108,18 @@ func (t *GetActionTool) Name() string {
 }
 
 func (t *GetActionTool) Description() string {
-	return "Get details of a specific action by ID"
+	return `Get detailed information about a specific action.
+
+USAGE WORKFLOW:
+1. Get action ID from list_actions
+2. Call this tool for complete action details
+3. Review assignee, status, and full description
+
+PARAMETERS:
+- id: Required. The action ID to retrieve
+
+EXAMPLES:
+- Get action: {"id": "action_123"}`
 }
 
 func (t *GetActionTool) InputSchema() map[string]interface{} {

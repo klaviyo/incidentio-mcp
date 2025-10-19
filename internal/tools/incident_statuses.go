@@ -21,7 +21,20 @@ func (t *ListIncidentStatusesTool) Name() string {
 }
 
 func (t *ListIncidentStatusesTool) Description() string {
-	return "List all available incident statuses (useful for updating incident status)"
+	return `List all available incident statuses configured in your organization.
+
+USAGE WORKFLOW:
+1. Call to see all status options (triage, active, monitoring, closed, etc.)
+2. Use status IDs when creating or updating incidents
+3. Review categories and names to understand workflow stages
+
+PARAMETERS:
+- None required
+
+EXAMPLES:
+- List all statuses: {}
+
+IMPORTANT: Status IDs from this tool are required for create_incident and update_incident tools. Each status has a category (triage, active, closed, etc.) that determines workflow stage.`
 }
 
 func (t *ListIncidentStatusesTool) InputSchema() map[string]interface{} {
