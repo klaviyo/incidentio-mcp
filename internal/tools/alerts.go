@@ -27,15 +27,21 @@ USAGE WORKFLOW:
 1. Call without filters to see all alerts
 2. Filter by status to see alerts in specific states
 3. Use alert IDs with get_alert for detailed information
+4. Use 'fields' parameter to reduce context usage by selecting only needed fields
 
 PARAMETERS:
 - page_size: Number of results (default 25, max 250). Set to 0 or omit for auto-pagination.
 - status: Array of status values to filter by - Multiple values match any (OR logic)
+- fields: Comma-separated list of fields to include in response (reduces context usage)
+  * Top-level: "id,title,status,source"
+  * Nested: "incident.id,incident.name"
+  * Omit to return all fields
 
 EXAMPLES:
 - List all alerts: {}
 - List firing alerts: {"status": ["firing"]}
-- List resolved alerts: {"status": ["resolved"]}`
+- List resolved alerts: {"status": ["resolved"]}
+- List with selected fields: {"fields": "id,title,status,incident.id"}`
 }
 
 func (t *ListAlertsTool) InputSchema() map[string]interface{} {
@@ -51,6 +57,10 @@ func (t *ListAlertsTool) InputSchema() map[string]interface{} {
 				"type":        "array",
 				"items":       map[string]interface{}{"type": "string"},
 				"description": "Filter by alert status",
+			},
+			"fields": map[string]interface{}{
+				"type":        "string",
+				"description": GetAlertFieldsDescription(),
 			},
 		},
 	}
@@ -76,12 +86,9 @@ func (t *ListAlertsTool) Execute(args map[string]interface{}) (string, error) {
 		return "", err
 	}
 
-	result, err := json.MarshalIndent(resp, "", "  ")
-	if err != nil {
-		return "", fmt.Errorf("failed to format response: %w", err)
-	}
-
-	return string(result), nil
+	// Apply field filtering if requested
+	fieldsStr, _ := args["fields"].(string)
+	return FilterFields(resp, fieldsStr)
 }
 
 // GetAlertTool retrieves a specific alert
@@ -104,12 +111,18 @@ USAGE WORKFLOW:
 1. Get alert ID from list_alerts or list_alerts_for_incident
 2. Call this tool for complete alert details
 3. Review status, metadata, and routing information
+4. Use 'fields' parameter to reduce context usage by selecting only needed fields
 
 PARAMETERS:
 - id: Required. The alert ID to retrieve
+- fields: Comma-separated list of fields to include in response (reduces context usage)
+  * Top-level: "id,title,status,source"
+  * Nested: "incident.id,incident.name"
+  * Omit to return all fields
 
 EXAMPLES:
-- Get alert: {"id": "alert_123"}`
+- Get alert: {"id": "alert_123"}
+- Get with selected fields: {"id": "alert_123", "fields": "id,title,status,incident.name"}`
 }
 
 func (t *GetAlertTool) InputSchema() map[string]interface{} {
@@ -119,6 +132,10 @@ func (t *GetAlertTool) InputSchema() map[string]interface{} {
 			"id": map[string]interface{}{
 				"type":        "string",
 				"description": "The alert ID",
+			},
+			"fields": map[string]interface{}{
+				"type":        "string",
+				"description": GetAlertFieldsDescription(),
 			},
 		},
 		"required": []string{"id"},
@@ -136,12 +153,9 @@ func (t *GetAlertTool) Execute(args map[string]interface{}) (string, error) {
 		return "", err
 	}
 
-	result, err := json.MarshalIndent(alert, "", "  ")
-	if err != nil {
-		return "", fmt.Errorf("failed to format response: %w", err)
-	}
-
-	return string(result), nil
+	// Apply field filtering if requested
+	fieldsStr, _ := args["fields"].(string)
+	return FilterFields(alert, fieldsStr)
 }
 
 // ListAlertsForIncidentTool lists alerts for a specific incident

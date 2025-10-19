@@ -30,16 +30,22 @@ USAGE WORKFLOW:
 2. Use the severity ID (not the name) in the 'severity' parameter
 3. Multiple severity IDs can be provided to match any of them (OR logic)
 4. Status filters can be combined with severity filters
+5. Use 'fields' parameter to reduce context usage by selecting only needed fields
 
 PARAMETERS:
 - page_size: Number of results (default 25, max 250). Set to 0 or omit for auto-pagination.
 - status: Array of status values (triage, active, resolved, closed)
 - severity: Array of severity IDs (e.g., ["01HXYZ..."]) - Use list_severities first to get valid IDs
+- fields: Comma-separated list of fields to include in response (reduces context usage)
+  * Top-level: "id,name,summary,reference"
+  * Nested: "severity.name,incident_status.category,incident_type.name"
+  * Omit to return all fields
 
 EXAMPLES:
 - List all active incidents: {"status": ["active"]}
 - List critical incidents: First call list_severities, then use severity ID like {"severity": ["01HXYZ..."]}
 - List active high-severity incidents: {"status": ["active"], "severity": ["sev_1", "sev_2"]}
+- List with selected fields: {"status": ["active"], "fields": "id,name,severity.name,incident_status.category"}
 
 IMPORTANT: Severity parameter requires severity IDs, not severity names. Always call list_severities first to discover available severity IDs.`
 }
@@ -62,6 +68,10 @@ func (t *ListIncidentsTool) InputSchema() map[string]interface{} {
 				"type":        "array",
 				"items":       map[string]interface{}{"type": "string"},
 				"description": "Filter by severity IDs (NOT severity names). IMPORTANT: Call 'list_severities' tool first to discover available severity IDs. Example: [\"sev_1\", \"sev_2\"] or [\"01HXYZ...\"]. Multiple IDs will match any of them (OR logic).",
+			},
+			"fields": map[string]interface{}{
+				"type":        "string",
+				"description": GetIncidentFieldsDescription(),
 			},
 		},
 	}
@@ -95,12 +105,9 @@ func (t *ListIncidentsTool) Execute(args map[string]interface{}) (string, error)
 		return "", err
 	}
 
-	result, err := json.MarshalIndent(resp, "", "  ")
-	if err != nil {
-		return "", fmt.Errorf("failed to format response: %w", err)
-	}
-
-	return string(result), nil
+	// Apply field filtering if requested
+	fieldsStr, _ := args["fields"].(string)
+	return FilterFields(resp, fieldsStr)
 }
 
 // GetIncidentTool retrieves a specific incident
@@ -123,12 +130,18 @@ USAGE WORKFLOW:
 1. Get incident ID from list_incidents
 2. Call this tool for complete incident details
 3. Review all fields including status, severity, timeline, and assignments
+4. Use 'fields' parameter to reduce context usage by selecting only needed fields
 
 PARAMETERS:
 - incident_id: Required. The incident ID to retrieve
+- fields: Comma-separated list of fields to include in response (reduces context usage)
+  * Top-level: "id,name,summary,reference"
+  * Nested: "severity.name,incident_status.category,incident_type.name"
+  * Omit to return all fields
 
 EXAMPLES:
-- Get incident: {"incident_id": "01HXYZ..."}`
+- Get incident: {"incident_id": "01HXYZ..."}
+- Get with selected fields: {"incident_id": "01HXYZ...", "fields": "id,name,severity.name,incident_status.category"}`
 }
 
 func (t *GetIncidentTool) InputSchema() map[string]interface{} {
@@ -138,6 +151,10 @@ func (t *GetIncidentTool) InputSchema() map[string]interface{} {
 			"incident_id": map[string]interface{}{
 				"type":        "string",
 				"description": "The incident ID",
+			},
+			"fields": map[string]interface{}{
+				"type":        "string",
+				"description": GetIncidentFieldsDescription(),
 			},
 		},
 		"required":             []interface{}{"incident_id"},
@@ -160,12 +177,9 @@ func (t *GetIncidentTool) Execute(args map[string]interface{}) (string, error) {
 		return "", err
 	}
 
-	result, err := json.MarshalIndent(incident, "", "  ")
-	if err != nil {
-		return "", fmt.Errorf("failed to format response: %w", err)
-	}
-
-	return string(result), nil
+	// Apply field filtering if requested
+	fieldsStr, _ := args["fields"].(string)
+	return FilterFields(incident, fieldsStr)
 }
 
 // CreateIncidentTool creates a new incident
