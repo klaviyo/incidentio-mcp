@@ -53,6 +53,8 @@ func (c *Client) ListIncidents(opts *ListIncidentsOptions) (*ListIncidentsRespon
 			return nil, fmt.Errorf("failed to unmarshal response: %w", err)
 		}
 
+		// Note: incident.io API does not provide total_count in pagination responses
+		// The field exists in our struct for compatibility but will always be 0
 		return &response, nil
 	}
 
@@ -69,7 +71,6 @@ func (c *Client) ListIncidents(opts *ListIncidentsOptions) (*ListIncidentsRespon
 
 	// Paginate through all results
 	maxPages := 10 // Safety limit
-	totalCount := 0
 	for page := 0; page < maxPages; page++ {
 		params := url.Values{}
 		// Copy base parameters
@@ -94,11 +95,6 @@ func (c *Client) ListIncidents(opts *ListIncidentsOptions) (*ListIncidentsRespon
 
 		allIncidents = append(allIncidents, response.Incidents...)
 
-		// Capture total_count from first response
-		if page == 0 {
-			totalCount = response.PaginationMeta.TotalCount
-		}
-
 		// Check if there are more pages
 		if response.PaginationMeta.After == "" || len(response.Incidents) == 0 {
 			break
@@ -106,7 +102,8 @@ func (c *Client) ListIncidents(opts *ListIncidentsOptions) (*ListIncidentsRespon
 		after = response.PaginationMeta.After
 	}
 
-	// Return combined results with correct total_count
+	// Return combined results
+	// Note: incident.io API does not provide total_count, so it will always be 0
 	return &ListIncidentsResponse{
 		Incidents: allIncidents,
 		ListResponse: ListResponse{
@@ -116,7 +113,7 @@ func (c *Client) ListIncidents(opts *ListIncidentsOptions) (*ListIncidentsRespon
 				TotalCount int    `json:"total_count"`
 			}{
 				PageSize:   pageSize,
-				TotalCount: totalCount,
+				TotalCount: 0, // API does not provide total count
 			},
 		},
 	}, nil

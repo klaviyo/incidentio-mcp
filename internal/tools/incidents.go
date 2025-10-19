@@ -35,7 +35,7 @@ USAGE WORKFLOW:
 
 PARAMETERS:
 - page_size: Number of results (default 25, max 250). Set to 0 or omit for auto-pagination.
-- after: Pagination cursor from previous response's pagination_meta.after (for manual pagination)
+- after: The incident ID to start pagination after. IMPORTANT: Use the exact value from the previous response's pagination_meta.after field. This is the ID of the last incident from the previous page.
 - status: Array of status category values (triage, live, closed, post_incident)
 - severity: Array of severity IDs (e.g., ["01HXYZ..."]) - Use list_severities first to get valid IDs
 - fields: Comma-separated list of fields to include in response (reduces context usage)
@@ -51,8 +51,12 @@ STATUS CATEGORIES:
 
 PAGINATION:
 - Auto-pagination: Omit page_size or set to 0 to fetch all results automatically
-- Manual pagination: Set page_size, then use pagination_meta.after from response in next request
-- Example manual pagination: First request {"page_size": 3}, then {"page_size": 3, "after": "01HXYZ..."}
+- Manual pagination:
+  1. First request: {"page_size": 3}
+  2. Extract pagination_meta.after from response (this is the last incident ID)
+  3. Next request: {"page_size": 3, "after": "<value from pagination_meta.after>"}
+  4. Repeat until pagination_meta.after is empty (no more pages)
+- NOTE: The incident.io API does not provide total_count, so pagination_meta.total_count will always be 0. To determine total results, you must paginate through all pages and count incidents.
 
 EXAMPLES:
 - List all active incidents: {"status": ["live"]}
@@ -75,7 +79,7 @@ func (t *ListIncidentsTool) InputSchema() map[string]interface{} {
 			},
 			"after": map[string]interface{}{
 				"type":        "string",
-				"description": "Pagination cursor for fetching the next page. Use the value from pagination_meta.after in the previous response. Only used with manual pagination (when page_size > 0).",
+				"description": "The incident ID to start pagination after. IMPORTANT: Use the EXACT value from pagination_meta.after field in the previous response (e.g., \"01K7RPHSXGPM1V07NPW8V6J6RZ\"). This tells the API to return incidents after this ID. Only used with manual pagination when page_size > 0.",
 			},
 			"status": map[string]interface{}{
 				"type":        "array",
