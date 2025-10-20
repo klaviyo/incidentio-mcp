@@ -25,11 +25,20 @@ func (t *ListIncidentsTool) Name() string {
 func (t *ListIncidentsTool) Description() string {
 	return `List incidents from incident.io with optional filtering by status category and severity.
 
-USAGE WORKFLOW:
+IMPORTANT: Use this tool to get BROAD OVERVIEW information about many incidents (returns default essential fields only).
+Once you identify specific incidents of interest, use get_incident tool with the incident_id to retrieve COMPLETE DETAILS about individual incidents.
+
+RECOMMENDED WORKFLOW:
+1. Use list_incidents to discover and filter incidents (returns: id, reference, name, created_at, updated_at, slack_channel_id)
+2. Identify incidents of interest from the list
+3. Use get_incident with specific incident_id values to get full details (all fields) for those incidents
+4. This two-step approach minimizes context usage while providing comprehensive information when needed
+
+USAGE:
 1. Filter incidents using status categories (validated against your org's available categories)
 2. Filter by severity using names like "Critical", "sev_1", or full IDs (automatically mapped)
 3. Multiple values can be provided to match any of them (OR logic)
-4. Use 'fields' parameter to reduce context usage by selecting only needed fields
+4. Default fields provide essential overview; use 'fields' parameter only if you need different fields for the list
 5. For manual pagination, use 'after' parameter with the value from pagination_meta.after in previous response
 
 PARAMETERS:
@@ -52,7 +61,8 @@ PARAMETERS:
 - fields: Comma-separated list of fields to include in response (reduces context usage)
   * Top-level: "id,name,summary,reference"
   * Nested: "severity.name,incident_status.category,incident_type.name"
-  * Omit to return all fields
+  * Default: "id,reference,name,created_at,updated_at,slack_channel_id"
+  * Omit or leave empty to use default fields
 
 VALIDATION:
 - Status categories are validated against your org's incident.io configuration
@@ -72,14 +82,14 @@ PAGINATION:
 - NOTE: total_record_count shows the total number of incidents matching your filters.
 
 EXAMPLES:
-- List all active incidents: {"status": ["active"]} or {"status": "active"}
+- List all active incidents (uses default fields): {"status": ["active"]} or {"status": "active"}
 - List critical incidents: {"severity": ["Critical"]} or {"severity": "Critical"}
 - List active high-severity incidents: {"status": ["active"], "severity": ["Critical", "High"]}
 - List triaging and active (array): {"status": ["triage", "active"]}
 - List triaging and active (string): {"status": "triage,active,learning"}
 - List closed incidents: {"status": ["closed"]} or {"status": "closed"}
 - Comma-separated severities: {"severity": "Critical,High,Medium"}
-- List with selected fields: {"status": "active", "fields": "id,name,severity.name,incident_status.category"}
+- List with custom fields: {"status": "active", "fields": "id,name,severity.name,incident_status.category"}
 - Manual pagination: {"page_size": 10, "after": "01K7RPHSXGPM1V07NPW8V6J6RZ"}
 
 NOTE: Both status and severity are validated against live API data. If you receive an error about invalid values, the error message will list all available options for your organization.`
@@ -111,6 +121,7 @@ func (t *ListIncidentsTool) InputSchema() map[string]interface{} {
 			"fields": map[string]interface{}{
 				"type":        "string",
 				"description": GetIncidentFieldsDescription(),
+				"default":     "id,reference,name,created_at,updated_at,slack_channel_id",
 			},
 		},
 	}
@@ -188,8 +199,11 @@ func (t *ListIncidentsTool) Execute(args map[string]interface{}) (string, error)
 		return "", err
 	}
 
-	// Apply field filtering if requested
-	fieldsStr, _ := args["fields"].(string)
+	// Apply field filtering with default fields if not specified
+	fieldsStr, ok := args["fields"].(string)
+	if !ok || fieldsStr == "" {
+		fieldsStr = "id,reference,name,created_at,updated_at,slack_channel_id"
+	}
 	return FilterFields(resp, fieldsStr)
 }
 
@@ -331,13 +345,25 @@ func (t *GetIncidentTool) Name() string {
 }
 
 func (t *GetIncidentTool) Description() string {
-	return `Get detailed information about a specific incident.
+	return `Get COMPLETE, DETAILED information about a specific incident (returns all fields by default).
 
-USAGE WORKFLOW:
-1. Get incident ID from list_incidents
-2. Call this tool for complete incident details
-3. Review all fields including status, severity, timeline, and assignments
-4. Use 'fields' parameter to reduce context usage by selecting only needed fields
+IMPORTANT: This tool returns ALL incident data and should be used AFTER list_incidents to get full details about specific incidents.
+
+RECOMMENDED WORKFLOW:
+1. First use list_incidents to discover incidents (returns only essential fields: id, reference, name, timestamps, slack_channel_id)
+2. Identify specific incident(s) of interest from the list
+3. Use THIS TOOL (get_incident) with the incident_id to retrieve COMPLETE information including:
+   - Full incident details (status, severity, timeline, assignments, custom fields)
+   - Related entities (incident type, status details, severity details)
+   - All timestamps and metadata
+   - Complete incident history and context
+4. Optionally use 'fields' parameter to limit response if you only need specific fields
+
+USAGE:
+1. Get incident_id from list_incidents results
+2. Call this tool with the incident_id for complete details
+3. Review comprehensive information including status, severity, timeline, assignments, and custom fields
+4. Use 'fields' parameter only if you need to reduce context by selecting specific fields (otherwise returns everything)
 
 PARAMETERS:
 - incident_id: Required. The incident ID to retrieve
