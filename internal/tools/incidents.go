@@ -418,10 +418,17 @@ func (t *GetIncidentTool) Description() string {
 
 IMPORTANT: This tool returns ALL incident data and should be used AFTER list_incidents to get full details about specific incidents.
 
+IDENTIFIER FORMATS SUPPORTED:
+This tool accepts multiple identifier formats for flexible incident lookup:
+1. Full incident ID: "01FDAG4SAP5TYPT98WGR2N7" (direct API call)
+2. Incident reference: "INC-123" or just "123" (direct API call - most efficient)
+3. Slack channel ID: "C123456789" (looks up via list_incidents)
+4. Slack channel name: "20251020-aws-outage-ci-impaired" (looks up via list_incidents, case-insensitive)
+
 RECOMMENDED WORKFLOW:
 1. First use list_incidents to discover incidents (returns only essential fields: id, reference, name, timestamps, slack_channel_id)
 2. Identify specific incident(s) of interest from the list
-3. Use THIS TOOL (get_incident) with the incident_id to retrieve COMPLETE information including:
+3. Use THIS TOOL (get_incident) with ANY of the identifier formats to retrieve COMPLETE information:
    - Full incident details (status, severity, timeline, assignments, custom fields)
    - Related entities (incident type, status details, severity details)
    - All timestamps and metadata
@@ -429,21 +436,33 @@ RECOMMENDED WORKFLOW:
 4. Optionally use 'fields' parameter to limit response if you only need specific fields
 
 USAGE:
-1. Get incident_id from list_incidents results
-2. Call this tool with the incident_id for complete details
-3. Review comprehensive information including status, severity, timeline, assignments, and custom fields
-4. Use 'fields' parameter only if you need to reduce context by selecting specific fields (otherwise returns everything)
+1. Get incident identifier from list_incidents results or from Slack/reference
+2. Call this tool with the identifier (supports ID, reference, Slack channel ID/name)
+3. Tool automatically resolves the identifier to the incident ID
+4. Review comprehensive information including status, severity, timeline, assignments, and custom fields
+5. Use 'fields' parameter only if you need to reduce context by selecting specific fields (otherwise returns everything)
 
 PARAMETERS:
-- incident_id: Required. The incident ID to retrieve
+- incident_id: Required. Can be any of these formats:
+  * Full incident ID: "01FDAG4SAP5TYPT98WGR2N7"
+  * Incident reference: "INC-123" or "123"
+  * Slack channel ID: "C123456789"
+  * Slack channel name: "20251020-aws-outage-ci-impaired"
 - fields: Comma-separated list of fields to include in response (reduces context usage)
   * Top-level: "id,name,summary,reference"
   * Nested: "severity.name,incident_status.category,incident_type.name"
   * Omit to return all fields
 
 EXAMPLES:
-- Get incident: {"incident_id": "01HXYZ..."}
-- Get with selected fields: {"incident_id": "01HXYZ...", "fields": "id,name,severity.name,incident_status.category"}`
+- Get by full ID: {"incident_id": "01HXYZ..."}
+- Get by reference: {"incident_id": "INC-123"} or {"incident_id": "123"}
+- Get by Slack channel ID: {"incident_id": "C123456789"}
+- Get by Slack channel name: {"incident_id": "20251020-aws-outage-ci-impaired"}
+- Get with selected fields: {"incident_id": "INC-123", "fields": "id,name,severity.name,incident_status.category"}
+
+PERFORMANCE NOTES:
+- Using incident ID or reference is most efficient (direct API call)
+- Using Slack channel ID/name requires an additional list_incidents lookup (slight overhead)`
 }
 
 func (t *GetIncidentTool) InputSchema() map[string]interface{} {
@@ -452,7 +471,7 @@ func (t *GetIncidentTool) InputSchema() map[string]interface{} {
 		"properties": map[string]interface{}{
 			"incident_id": map[string]interface{}{
 				"type":        "string",
-				"description": "The incident ID",
+				"description": "Incident identifier in any of these formats: full ID (01FDAG4SAP5TYPT98WGR2N7), reference (INC-123 or 123), Slack channel ID (C123456789), or Slack channel name (20251020-aws-outage-ci-impaired). Tool automatically resolves to incident ID.",
 			},
 			"fields": map[string]interface{}{
 				"type":        "string",
@@ -465,8 +484,8 @@ func (t *GetIncidentTool) InputSchema() map[string]interface{} {
 }
 
 func (t *GetIncidentTool) Execute(args map[string]interface{}) (string, error) {
-	id, ok := args["incident_id"].(string)
-	if !ok || id == "" {
+	identifier, ok := args["incident_id"].(string)
+	if !ok || identifier == "" {
 		argDetails := make(map[string]interface{})
 		for key, value := range args {
 			argDetails[key] = value
@@ -474,7 +493,13 @@ func (t *GetIncidentTool) Execute(args map[string]interface{}) (string, error) {
 		return "", fmt.Errorf("incident_id parameter is required and must be a non-empty string. Received parameters: %+v", argDetails)
 	}
 
-	incident, err := t.client.GetIncident(id)
+	// Resolve identifier to actual incident ID if needed
+	incidentID, err := t.resolveIncidentIdentifier(identifier)
+	if err != nil {
+		return "", err
+	}
+
+	incident, err := t.client.GetIncident(incidentID)
 	if err != nil {
 		return "", err
 	}
@@ -482,6 +507,100 @@ func (t *GetIncidentTool) Execute(args map[string]interface{}) (string, error) {
 	// Apply field filtering if requested
 	fieldsStr, _ := args["fields"].(string)
 	return FilterFields(incident, fieldsStr)
+}
+
+// resolveIncidentIdentifier resolves various identifier formats to an incident ID
+// Supports: incident ID (01FDAG4SAP5TYPT98WGR2N7), reference (INC-123 or just 123),
+// Slack channel ID (C123456789), or Slack channel name (20251020-aws-outage-ci-impaired)
+func (t *GetIncidentTool) resolveIncidentIdentifier(identifier string) (string, error) {
+	// Check if it's already a full incident ID (starts with 01 and is alphanumeric)
+	if strings.HasPrefix(identifier, "01") && len(identifier) > 20 {
+		return identifier, nil
+	}
+
+	// Check if it's a numeric reference (123) - try API directly as it supports this
+	if isNumericReference(identifier) {
+		return identifier, nil
+	}
+
+	// Check if it's a reference format (INC-123)
+	if strings.HasPrefix(strings.ToUpper(identifier), "INC-") {
+		// Extract numeric part and let API handle it
+		numericPart := strings.TrimPrefix(strings.ToUpper(identifier), "INC-")
+		return numericPart, nil
+	}
+
+	// Check if it's a Slack channel ID (starts with C and is alphanumeric)
+	if strings.HasPrefix(identifier, "C") && len(identifier) > 5 && isAlphanumeric(identifier) {
+		return t.lookupIncidentBySlackChannelID(identifier)
+	}
+
+	// Otherwise, treat as Slack channel name
+	return t.lookupIncidentBySlackChannelName(identifier)
+}
+
+// lookupIncidentBySlackChannelID finds incident ID by Slack channel ID
+func (t *GetIncidentTool) lookupIncidentBySlackChannelID(channelID string) (string, error) {
+	// Use list_incidents with minimal fields to find the incident
+	resp, err := t.client.ListIncidents(&incidentio.ListIncidentsOptions{
+		PageSize: 250, // Use max page size for efficiency
+	})
+	if err != nil {
+		return "", fmt.Errorf("failed to lookup incident by Slack channel ID: %w", err)
+	}
+
+	// Search for matching incident
+	for _, incident := range resp.Incidents {
+		if incident.SlackChannelID == channelID {
+			return incident.ID, nil
+		}
+	}
+
+	return "", fmt.Errorf("no incident found with Slack channel ID: %s", channelID)
+}
+
+// lookupIncidentBySlackChannelName finds incident ID by Slack channel name
+func (t *GetIncidentTool) lookupIncidentBySlackChannelName(channelName string) (string, error) {
+	// Use list_incidents with minimal fields to find the incident
+	resp, err := t.client.ListIncidents(&incidentio.ListIncidentsOptions{
+		PageSize: 250, // Use max page size for efficiency
+	})
+	if err != nil {
+		return "", fmt.Errorf("failed to lookup incident by Slack channel name: %w", err)
+	}
+
+	// Search for matching incident (case-insensitive)
+	channelNameLower := strings.ToLower(channelName)
+	for _, incident := range resp.Incidents {
+		if strings.ToLower(incident.SlackChannelName) == channelNameLower {
+			return incident.ID, nil
+		}
+	}
+
+	return "", fmt.Errorf("no incident found with Slack channel name: %s", channelName)
+}
+
+// isNumericReference checks if string contains only digits
+func isNumericReference(s string) bool {
+	if len(s) == 0 {
+		return false
+	}
+	for _, c := range s {
+		if c < '0' || c > '9' {
+			return false
+		}
+	}
+	return true
+}
+
+// isAlphanumeric checks if string contains only alphanumeric characters
+func isAlphanumeric(s string) bool {
+	for _, c := range s {
+		if !((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9')) {
+			return false
+		}
+	}
+	return true
 }
 
 // CreateIncidentTool creates a new incident
