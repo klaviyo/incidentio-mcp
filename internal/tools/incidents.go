@@ -35,18 +35,20 @@ USAGE WORKFLOW:
 PARAMETERS:
 - page_size: Number of results (default 25, max 250). Set to 0 or omit for auto-pagination.
 - after: The incident ID to start pagination after. Use the exact value from pagination_meta.after in previous response.
-- status: Array of status values. Accepts friendly aliases OR direct API categories:
+- status: Status values in array OR comma-separated string format. Accepts friendly aliases OR direct API categories:
+  * Format: Array ["active", "triage"] OR comma-separated string "active,triage,learning"
   * Aliases: "active" → "live", "open" → "live", "resolved" → "closed", "completed" → "closed"
   * API categories: live, triage, learning, closed, merged, declined, canceled, paused (varies by org)
   * Case-insensitive matching for both aliases and categories
   * Tool validates against your org's exact incident.io configuration
   * Invalid values return helpful error with all available options and aliases
-  * Examples: ["active"], ["live"], ["triage", "active"], ["resolved"]
-- severity: Array of severity names OR IDs. Tool automatically maps names to IDs:
+  * Examples: ["active"], ["live"], ["triage", "active"], "active,triage,learning"
+- severity: Severity values in array OR comma-separated string format. Tool automatically maps names to IDs:
+  * Format: Array ["Critical", "High"] OR comma-separated string "Critical,High,Medium"
   * By name: "Critical", "High", "Medium", "Low", "sev_1", "sev_2", etc.
   * By ID: "01K56QEGAD95K9K5ZQ9CCPF6EF" (full UUID format)
   * Invalid severities will return helpful error with all available options
-  * Examples: ["Critical"], ["sev_1", "sev_2"], ["Critical", "High"]
+  * Examples: ["Critical"], ["sev_1", "sev_2"], "Critical,High"
 - fields: Comma-separated list of fields to include in response (reduces context usage)
   * Top-level: "id,name,summary,reference"
   * Nested: "severity.name,incident_status.category,incident_type.name"
@@ -70,12 +72,14 @@ PAGINATION:
 - NOTE: total_record_count shows the total number of incidents matching your filters.
 
 EXAMPLES:
-- List all active incidents: {"status": ["active"]}
-- List critical incidents: {"severity": ["Critical"]} or {"severity": ["sev_1"]}
+- List all active incidents: {"status": ["active"]} or {"status": "active"}
+- List critical incidents: {"severity": ["Critical"]} or {"severity": "Critical"}
 - List active high-severity incidents: {"status": ["active"], "severity": ["Critical", "High"]}
-- List triaging and active: {"status": ["triage", "active"]}
-- List closed incidents: {"status": ["closed"]}
-- List with selected fields: {"status": ["active"], "fields": "id,name,severity.name,incident_status.category"}
+- List triaging and active (array): {"status": ["triage", "active"]}
+- List triaging and active (string): {"status": "triage,active,learning"}
+- List closed incidents: {"status": ["closed"]} or {"status": "closed"}
+- Comma-separated severities: {"severity": "Critical,High,Medium"}
+- List with selected fields: {"status": "active", "fields": "id,name,severity.name,incident_status.category"}
 - Manual pagination: {"page_size": 10, "after": "01K7RPHSXGPM1V07NPW8V6J6RZ"}
 
 NOTE: Both status and severity are validated against live API data. If you receive an error about invalid values, the error message will list all available options for your organization.`
@@ -97,12 +101,12 @@ func (t *ListIncidentsTool) InputSchema() map[string]interface{} {
 			"status": map[string]interface{}{
 				"type":        "array",
 				"items":       map[string]interface{}{"type": "string"},
-				"description": "Filter by incident status. Accepts aliases (\"active\" → \"live\", \"resolved\" → \"closed\") OR direct categories (live, triage, learning, closed, merged, declined, canceled, paused). Case-insensitive. Validated against your org's configuration. Invalid values return helpful errors with available options and aliases. Multiple values match any of them (OR logic). Examples: [\"active\"], [\"live\"], [\"triage\", \"active\"]",
+				"description": "Filter by incident status. Accepts BOTH array format [\"active\", \"triage\"] AND comma-separated string \"active,triage,learning\". Accepts aliases (\"active\" → \"live\", \"resolved\" → \"closed\") OR direct categories (live, triage, learning, closed, merged, declined, canceled, paused). Case-insensitive. Validated against your org's configuration. Invalid values return helpful errors with available options and aliases. Multiple values match any of them (OR logic). Examples: [\"active\"], [\"live\"], [\"triage\", \"active\"], \"active,triage,learning\"",
 			},
 			"severity": map[string]interface{}{
 				"type":        "array",
 				"items":       map[string]interface{}{"type": "string"},
-				"description": "Filter by severity. Accepts BOTH severity names (\"Critical\", \"High\", \"sev_1\", etc.) AND full IDs. Tool automatically maps names to IDs. Multiple values will match any of them (OR logic). Examples: [\"Critical\"], [\"sev_1\", \"sev_2\"], [\"Critical\", \"High\"]",
+				"description": "Filter by severity. Accepts BOTH array format [\"Critical\", \"High\"] AND comma-separated string \"Critical,High,Medium\". Accepts severity names (\"Critical\", \"High\", \"sev_1\", etc.) AND full IDs. Tool automatically maps names to IDs. Multiple values will match any of them (OR logic). Examples: [\"Critical\"], [\"sev_1\", \"sev_2\"], [\"Critical\", \"High\"], \"Critical,High\"",
 			},
 			"fields": map[string]interface{}{
 				"type":        "string",
@@ -123,42 +127,60 @@ func (t *ListIncidentsTool) Execute(args map[string]interface{}) (string, error)
 		opts.After = after
 	}
 
+	// Handle status parameter - supports both array and comma-separated string
+	var statusInputs []string
 	if statuses, ok := args["status"].([]interface{}); ok {
-		// Collect status inputs to validate
-		var statusInputs []string
+		// Array format: ["active", "triage", "learning"]
 		for _, s := range statuses {
 			if str, ok := s.(string); ok {
 				statusInputs = append(statusInputs, str)
 			}
 		}
-
-		// Validate status categories against API
-		if len(statusInputs) > 0 {
-			validatedStatuses, err := t.validateStatusCategories(statusInputs)
-			if err != nil {
-				return "", fmt.Errorf("failed to validate status categories: %w", err)
+	} else if statusStr, ok := args["status"].(string); ok {
+		// Comma-separated string format: "active,triage,learning"
+		for _, s := range strings.Split(statusStr, ",") {
+			trimmed := strings.TrimSpace(s)
+			if trimmed != "" {
+				statusInputs = append(statusInputs, trimmed)
 			}
-			opts.Status = validatedStatuses
 		}
 	}
 
+	// Validate status categories against API
+	if len(statusInputs) > 0 {
+		validatedStatuses, err := t.validateStatusCategories(statusInputs)
+		if err != nil {
+			return "", fmt.Errorf("failed to validate status categories: %w", err)
+		}
+		opts.Status = validatedStatuses
+	}
+
+	// Handle severity parameter - supports both array and comma-separated string
+	var severityInputs []string
 	if severities, ok := args["severity"].([]interface{}); ok {
-		// Collect severity names/IDs to map
-		var severityInputs []string
+		// Array format: ["Critical", "High"]
 		for _, s := range severities {
 			if str, ok := s.(string); ok {
 				severityInputs = append(severityInputs, str)
 			}
 		}
-
-		// Map severity names to IDs
-		if len(severityInputs) > 0 {
-			mappedSeverities, err := t.mapSeveritiesToIDs(severityInputs)
-			if err != nil {
-				return "", fmt.Errorf("failed to map severities: %w", err)
+	} else if severityStr, ok := args["severity"].(string); ok {
+		// Comma-separated string format: "Critical,High"
+		for _, s := range strings.Split(severityStr, ",") {
+			trimmed := strings.TrimSpace(s)
+			if trimmed != "" {
+				severityInputs = append(severityInputs, trimmed)
 			}
-			opts.Severity = mappedSeverities
 		}
+	}
+
+	// Map severity names to IDs
+	if len(severityInputs) > 0 {
+		mappedSeverities, err := t.mapSeveritiesToIDs(severityInputs)
+		if err != nil {
+			return "", fmt.Errorf("failed to map severities: %w", err)
+		}
+		opts.Severity = mappedSeverities
 	}
 
 	resp, err := t.client.ListIncidents(opts)
