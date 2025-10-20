@@ -63,6 +63,24 @@ PARAMETERS:
   * Nested: "severity.name,incident_status.category,incident_type.name"
   * Default: "id,reference,name,created_at,updated_at,slack_channel_id"
   * Omit or leave empty to use default fields
+- created_at_gte: Filter incidents created on or after this date (ISO 8601 format)
+  * Example: "2024-12-01" or "2024-12-01T00:00:00Z"
+  * Useful for finding incidents created since a specific date
+- created_at_lte: Filter incidents created on or before this date (ISO 8601 format)
+  * Example: "2024-12-31" or "2024-12-31T23:59:59Z"
+  * Useful for finding incidents created up to a specific date
+- created_at_range: Filter incidents created within a date range (tilde-separated dates)
+  * Example: "2024-12-01~2024-12-31"
+  * More efficient than using both gte and lte for date ranges
+- updated_at_gte: Filter incidents updated on or after this date (ISO 8601 format)
+  * Example: "2024-12-01" or "2024-12-01T00:00:00Z"
+  * Useful for finding recently modified incidents
+- updated_at_lte: Filter incidents updated on or before this date (ISO 8601 format)
+  * Example: "2024-12-31" or "2024-12-31T23:59:59Z"
+  * Useful for finding incidents last updated before a specific date
+- updated_at_range: Filter incidents updated within a date range (tilde-separated dates)
+  * Example: "2024-12-01~2024-12-31"
+  * More efficient than using both gte and lte for date ranges
 
 VALIDATION:
 - Status categories are validated against your org's incident.io configuration
@@ -90,6 +108,11 @@ EXAMPLES:
 - List closed incidents: {"status": ["closed"]} or {"status": "closed"}
 - Comma-separated severities: {"severity": "Critical,High,Medium"}
 - List with custom fields: {"status": "active", "fields": "id,name,severity.name,incident_status.category"}
+- List incidents created after December 1st, 2024: {"created_at_gte": "2024-12-01"}
+- List incidents created before December 31st, 2024: {"created_at_lte": "2024-12-31"}
+- List incidents created in December 2024: {"created_at_range": "2024-12-01~2024-12-31"}
+- List incidents updated in the last week: {"updated_at_gte": "2024-12-15"}
+- List active incidents from specific date range: {"status": "active", "created_at_range": "2024-12-01~2024-12-08"}
 - Manual pagination: {"page_size": 10, "after": "01K7RPHSXGPM1V07NPW8V6J6RZ"}
 
 NOTE: Both status and severity are validated against live API data. If you receive an error about invalid values, the error message will list all available options for your organization.`
@@ -122,6 +145,30 @@ func (t *ListIncidentsTool) InputSchema() map[string]interface{} {
 				"type":        "string",
 				"description": GetIncidentFieldsDescription(),
 				"default":     "id,reference,name,created_at,updated_at,slack_channel_id",
+			},
+			"created_at_gte": map[string]interface{}{
+				"type":        "string",
+				"description": "Filter incidents created on or after this date (ISO 8601 format). Example: \"2024-12-01\" or \"2024-12-01T00:00:00Z\"",
+			},
+			"created_at_lte": map[string]interface{}{
+				"type":        "string",
+				"description": "Filter incidents created on or before this date (ISO 8601 format). Example: \"2024-12-31\" or \"2024-12-31T23:59:59Z\"",
+			},
+			"created_at_range": map[string]interface{}{
+				"type":        "string",
+				"description": "Filter incidents created within a date range using tilde-separated dates (ISO 8601 format). Example: \"2024-12-01~2024-12-31\"",
+			},
+			"updated_at_gte": map[string]interface{}{
+				"type":        "string",
+				"description": "Filter incidents updated on or after this date (ISO 8601 format). Example: \"2024-12-01\" or \"2024-12-01T00:00:00Z\"",
+			},
+			"updated_at_lte": map[string]interface{}{
+				"type":        "string",
+				"description": "Filter incidents updated on or before this date (ISO 8601 format). Example: \"2024-12-31\" or \"2024-12-31T23:59:59Z\"",
+			},
+			"updated_at_range": map[string]interface{}{
+				"type":        "string",
+				"description": "Filter incidents updated within a date range using tilde-separated dates (ISO 8601 format). Example: \"2024-12-01~2024-12-31\"",
 			},
 		},
 	}
@@ -192,6 +239,28 @@ func (t *ListIncidentsTool) Execute(args map[string]interface{}) (string, error)
 			return "", fmt.Errorf("failed to map severities: %w", err)
 		}
 		opts.Severity = mappedSeverities
+	}
+
+	// Handle date filter parameters for created_at
+	if createdAtGTE, ok := args["created_at_gte"].(string); ok && createdAtGTE != "" {
+		opts.CreatedAtGTE = createdAtGTE
+	}
+	if createdAtLTE, ok := args["created_at_lte"].(string); ok && createdAtLTE != "" {
+		opts.CreatedAtLTE = createdAtLTE
+	}
+	if createdAtRange, ok := args["created_at_range"].(string); ok && createdAtRange != "" {
+		opts.CreatedAtRange = createdAtRange
+	}
+
+	// Handle date filter parameters for updated_at
+	if updatedAtGTE, ok := args["updated_at_gte"].(string); ok && updatedAtGTE != "" {
+		opts.UpdatedAtGTE = updatedAtGTE
+	}
+	if updatedAtLTE, ok := args["updated_at_lte"].(string); ok && updatedAtLTE != "" {
+		opts.UpdatedAtLTE = updatedAtLTE
+	}
+	if updatedAtRange, ok := args["updated_at_range"].(string); ok && updatedAtRange != "" {
+		opts.UpdatedAtRange = updatedAtRange
 	}
 
 	resp, err := t.client.ListIncidents(opts)
