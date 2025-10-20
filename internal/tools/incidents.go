@@ -35,11 +35,12 @@ USAGE WORKFLOW:
 PARAMETERS:
 - page_size: Number of results (default 25, max 250). Set to 0 or omit for auto-pagination.
 - after: The incident ID to start pagination after. Use the exact value from pagination_meta.after in previous response.
-- status: Array of status category values. Tool validates against your org's available categories.
-  * Common categories: active, triage, closed, post-incident, merged, declined, canceled, paused
-  * Case-insensitive matching
-  * Invalid categories will return helpful error with all available options
-  * Examples: ["active"], ["triage"], ["active", "triage"]
+- status: Array of status category values. Validated against your org's available categories:
+  * Common categories: active, triage, learning, closed, merged, declined, canceled, paused
+  * Case-insensitive matching (e.g., "Active", "ACTIVE", "active" all work)
+  * Tool validates against your org's exact incident.io configuration
+  * Invalid values return helpful error with all available options
+  * Examples: ["active"], ["triage"], ["triage", "active"], ["closed"]
 - severity: Array of severity names OR IDs. Tool automatically maps names to IDs:
   * By name: "Critical", "High", "Medium", "Low", "sev_1", "sev_2", etc.
   * By ID: "01K56QEGAD95K9K5ZQ9CCPF6EF" (full UUID format)
@@ -70,6 +71,7 @@ EXAMPLES:
 - List critical incidents: {"severity": ["Critical"]} or {"severity": ["sev_1"]}
 - List active high-severity incidents: {"status": ["active"], "severity": ["Critical", "High"]}
 - List triaging and active: {"status": ["triage", "active"]}
+- List closed incidents: {"status": ["closed"]}
 - List with selected fields: {"status": ["active"], "fields": "id,name,severity.name,incident_status.category"}
 - Manual pagination: {"page_size": 10, "after": "01K7RPHSXGPM1V07NPW8V6J6RZ"}
 
@@ -92,7 +94,7 @@ func (t *ListIncidentsTool) InputSchema() map[string]interface{} {
 			"status": map[string]interface{}{
 				"type":        "array",
 				"items":       map[string]interface{}{"type": "string"},
-				"description": "Filter by incident status category. Validated against your org's available categories (e.g., active, triage, closed, post-incident, merged, declined, canceled, paused). Case-insensitive. Invalid categories return helpful errors. Multiple values match any of them (OR logic). Examples: [\"active\"], [\"triage\", \"active\"]",
+				"description": "Filter by incident status category. Validated against your org's available categories (e.g., active, triage, learning, closed, merged, declined, canceled, paused). Case-insensitive matching. Invalid categories return helpful errors listing all available options. Multiple values match any of them (OR logic). Examples: [\"active\"], [\"triage\", \"active\"], [\"closed\"]",
 			},
 			"severity": map[string]interface{}{
 				"type":        "array",
@@ -166,33 +168,36 @@ func (t *ListIncidentsTool) Execute(args map[string]interface{}) (string, error)
 	return FilterFields(resp, fieldsStr)
 }
 
-// validateStatusCategories fetches status list and validates category inputs
+// validateStatusCategories validates status categories against API and uses exact API values
 func (t *ListIncidentsTool) validateStatusCategories(inputs []string) ([]string, error) {
-	// Fetch all incident statuses
+	// Fetch all incident statuses to get valid categories
 	statuses, err := t.client.ListIncidentStatuses()
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch incident statuses for validation: %w", err)
 	}
 
-	// Build set of valid categories
-	validCategories := make(map[string]bool)
+	// Build map of lowercase category to actual category value from API
+	// This preserves the exact case/format the API uses
+	categoryMap := make(map[string]string)
 	for _, status := range statuses.IncidentStatuses {
-		validCategories[strings.ToLower(status.Category)] = true
+		categoryLower := strings.ToLower(status.Category)
+		// Store the actual category value from API response
+		categoryMap[categoryLower] = status.Category
 	}
 
-	// Validate each input
+	// Validate each input and normalize to API format
 	var result []string
 	for _, input := range inputs {
 		inputLower := strings.ToLower(input)
 
-		// Check if it's a valid category
-		if validCategories[inputLower] {
-			result = append(result, inputLower)
+		// Check if it matches a valid category (case-insensitive lookup)
+		if apiCategory, ok := categoryMap[inputLower]; ok {
+			result = append(result, apiCategory)
 			continue
 		}
 
 		// If not found, return error with helpful message
-		return nil, fmt.Errorf("status category '%s' not found. Available categories: %s. Call list_incident_statuses to see all options with their names", input, t.formatAvailableCategories(statuses.IncidentStatuses))
+		return nil, fmt.Errorf("status category '%s' not found. Available categories: %s. Categories are case-insensitive. Call list_incident_statuses to see all status options with their categories", input, t.formatAvailableCategories(statuses.IncidentStatuses))
 	}
 
 	return result, nil
