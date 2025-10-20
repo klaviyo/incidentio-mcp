@@ -60,12 +60,14 @@ VALIDATION:
 
 PAGINATION:
 - Auto-pagination: Omit page_size or set to 0 to fetch all results automatically
+  * Returns total_record_count = number of incidents fetched
 - Manual pagination:
-  1. First request: {"page_size": 3}
-  2. Extract pagination_meta.after from response (this is the last incident ID)
-  3. Next request: {"page_size": 3, "after": "<value from pagination_meta.after>"}
-  4. Repeat until pagination_meta.after is empty (no more pages)
-- NOTE: The incident.io API does not provide total_count, so pagination_meta.total_count will always be 0.
+  1. First request: {"page_size": 25}
+  2. Response includes pagination_meta.total_record_count (total matching incidents)
+  3. Extract pagination_meta.after from response (ID for next page)
+  4. Next request: {"page_size": 25, "after": "<value from pagination_meta.after>"}
+  5. Repeat until pagination_meta.after is empty (no more pages)
+- NOTE: total_record_count shows the total number of incidents matching your filters.
 
 EXAMPLES:
 - List all active incidents: {"status": ["active"]}

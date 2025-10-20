@@ -53,8 +53,7 @@ func (c *Client) ListIncidents(opts *ListIncidentsOptions) (*ListIncidentsRespon
 			return nil, fmt.Errorf("failed to unmarshal response: %w", err)
 		}
 
-		// Note: incident.io API does not provide total_count in pagination responses
-		// The field exists in our struct for compatibility but will always be 0
+		// API returns total_record_count for single page requests
 		return &response, nil
 	}
 
@@ -103,17 +102,17 @@ func (c *Client) ListIncidents(opts *ListIncidentsOptions) (*ListIncidentsRespon
 	}
 
 	// Return combined results
-	// Note: incident.io API does not provide total_count, so it will always be 0
+	// Note: Auto-pagination returns all results, so total_record_count equals the number fetched
 	return &ListIncidentsResponse{
 		Incidents: allIncidents,
 		ListResponse: ListResponse{
 			PaginationMeta: struct {
-				After      string `json:"after,omitempty"`
-				PageSize   int    `json:"page_size"`
-				TotalCount int    `json:"total_count"`
+				After            string `json:"after,omitempty"`
+				PageSize         int    `json:"page_size"`
+				TotalRecordCount int    `json:"total_record_count,omitempty"`
 			}{
-				PageSize:   pageSize,
-				TotalCount: 0, // API does not provide total count
+				PageSize:         pageSize,
+				TotalRecordCount: len(allIncidents), // Total count is number of incidents fetched
 			},
 		},
 	}, nil
