@@ -61,7 +61,7 @@ PARAMETERS:
 - fields: Comma-separated list of fields to include in response (reduces context usage)
   * Top-level: "id,name,summary,reference"
   * Nested: "severity.name,incident_status.category,incident_type.name"
-  * Default: "id,reference,name,created_at,updated_at,slack_channel_id"
+  * Default: "id,reference,name,permalink,created_at,updated_at,slack_channel_id"
   * Omit or leave empty to use default fields
 - created_at_gte: Filter incidents created on or after this date (ISO 8601 format)
   * Example: "2024-12-01" or "2024-12-01T00:00:00Z"
@@ -144,7 +144,7 @@ func (t *ListIncidentsTool) InputSchema() map[string]interface{} {
 			"fields": map[string]interface{}{
 				"type":        "string",
 				"description": GetIncidentFieldsDescription(),
-				"default":     "id,reference,name,created_at,updated_at,slack_channel_id",
+				"default":     "id,reference,name,permalink,created_at,updated_at,slack_channel_id",
 			},
 			"created_at_gte": map[string]interface{}{
 				"type":        "string",
@@ -271,7 +271,7 @@ func (t *ListIncidentsTool) Execute(args map[string]interface{}) (string, error)
 	// Apply field filtering with default fields if not specified
 	fieldsStr, ok := args["fields"].(string)
 	if !ok || fieldsStr == "" {
-		fieldsStr = "id,reference,name,created_at,updated_at,slack_channel_id"
+		fieldsStr = "id,reference,name,permalink,created_at,updated_at,slack_channel_id"
 	}
 	return FilterFields(resp, fieldsStr)
 }
