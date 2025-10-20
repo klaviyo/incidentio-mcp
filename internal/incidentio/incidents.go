@@ -62,7 +62,7 @@ func (c *Client) ListIncidents(opts *ListIncidentsOptions) (*ListIncidentsRespon
 	baseParams := url.Values{}
 	if opts != nil {
 		for _, status := range opts.Status {
-			baseParams.Add("status", status)
+			baseParams.Add("incident_status[category][one_of]", status)
 		}
 		for _, severity := range opts.Severity {
 			baseParams.Add("severity[one_of]", severity)

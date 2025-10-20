@@ -26,28 +26,34 @@ func (t *ListIncidentsTool) Description() string {
 	return `List incidents from incident.io with optional filtering by status and severity.
 
 USAGE WORKFLOW:
-1. To filter by severity, first call 'list_severities' to get available severity IDs
-2. Use the severity ID (not the name) in the 'severity' parameter
-3. Multiple severity IDs can be provided to match any of them (OR logic)
-4. Status filters can be combined with severity filters
+1. Filter incidents using status categories and/or severity names
+2. Status accepts friendly names like "active" (automatically mapped to "live")
+3. Severity accepts both names like "Critical" or "sev_1" AND full IDs (automatically mapped)
+4. Multiple values can be provided to match any of them (OR logic)
 5. Use 'fields' parameter to reduce context usage by selecting only needed fields
 6. For manual pagination, use 'after' parameter with the value from pagination_meta.after in previous response
 
 PARAMETERS:
 - page_size: Number of results (default 25, max 250). Set to 0 or omit for auto-pagination.
-- after: The incident ID to start pagination after. IMPORTANT: Use the exact value from the previous response's pagination_meta.after field. This is the ID of the last incident from the previous page.
-- status: Array of status category values (triage, live, closed, post_incident)
-- severity: Array of severity IDs (e.g., ["01HXYZ..."]) - Use list_severities first to get valid IDs
+- after: The incident ID to start pagination after. Use the exact value from pagination_meta.after in previous response.
+- status: Array of status values. Supports both categories AND friendly aliases:
+  * Categories: triage, live, closed, post_incident
+  * Aliases: "active" → live, "open" → live, "resolved" → closed, etc.
+  * Examples: ["active"], ["live"], ["active", "triage"]
+- severity: Array of severity names OR IDs. Tool automatically maps names to IDs:
+  * By name: "Critical", "High", "Medium", "Low", "sev_1", "sev_2", etc.
+  * By ID: "01K56QEGAD95K9K5ZQ9CCPF6EF" (full UUID format)
+  * Examples: ["Critical"], ["sev_1", "sev_2"], ["Critical", "High"]
 - fields: Comma-separated list of fields to include in response (reduces context usage)
   * Top-level: "id,name,summary,reference"
   * Nested: "severity.name,incident_status.category,incident_type.name"
   * Omit to return all fields
 
-STATUS CATEGORIES:
-- triage: Incidents being triaged
-- live: Active incidents (investigating, identified, fixing, monitoring)
-- closed: Completed incidents
-- post_incident: Post-incident follow-up work
+STATUS MAPPING (all automatically handled):
+- "active", "open", "ongoing" → "live"
+- "resolved", "completed", "done" → "closed"
+- "postmortem", "retrospective" → "post_incident"
+- "triage", "live", "closed", "post_incident" → passed through
 
 PAGINATION:
 - Auto-pagination: Omit page_size or set to 0 to fetch all results automatically
@@ -56,16 +62,17 @@ PAGINATION:
   2. Extract pagination_meta.after from response (this is the last incident ID)
   3. Next request: {"page_size": 3, "after": "<value from pagination_meta.after>"}
   4. Repeat until pagination_meta.after is empty (no more pages)
-- NOTE: The incident.io API does not provide total_count, so pagination_meta.total_count will always be 0. To determine total results, you must paginate through all pages and count incidents.
+- NOTE: The incident.io API does not provide total_count, so pagination_meta.total_count will always be 0.
 
 EXAMPLES:
-- List all active incidents: {"status": ["live"]}
-- List critical incidents: First call list_severities, then use severity ID like {"severity": ["01HXYZ..."]}
-- List active high-severity incidents: {"status": ["live"], "severity": ["sev_1", "sev_2"]}
-- List with selected fields: {"status": ["live"], "fields": "id,name,severity.name,incident_status.category"}
+- List all active incidents: {"status": ["active"]} or {"status": ["live"]}
+- List critical incidents: {"severity": ["Critical"]} or {"severity": ["sev_1"]}
+- List active high-severity incidents: {"status": ["active"], "severity": ["Critical", "High"]}
+- List with friendly names: {"status": ["open", "investigating"], "severity": ["sev_1", "sev_2"]}
+- List with selected fields: {"status": ["active"], "fields": "id,name,severity.name,incident_status.category"}
 - Manual pagination: {"page_size": 10, "after": "01K7RPHSXGPM1V07NPW8V6J6RZ"}
 
-IMPORTANT: Severity parameter requires severity IDs, not severity names. Always call list_severities first to discover available severity IDs.`
+NOTE: The tool automatically maps severity names to IDs by fetching the severity list. If a severity name is not found, you'll get a helpful error message with available options.`
 }
 
 func (t *ListIncidentsTool) InputSchema() map[string]interface{} {
@@ -84,12 +91,12 @@ func (t *ListIncidentsTool) InputSchema() map[string]interface{} {
 			"status": map[string]interface{}{
 				"type":        "array",
 				"items":       map[string]interface{}{"type": "string"},
-				"description": "Filter by incident status category. Valid values: triage, live, closed, post_incident. Multiple values will match any of them (OR logic). Example: [\"live\", \"triage\"]",
+				"description": "Filter by incident status. Accepts both API categories (triage, live, closed, post_incident) AND friendly aliases (\"active\" → live, \"open\" → live, \"resolved\" → closed, etc.). Multiple values will match any of them (OR logic). Examples: [\"active\"], [\"live\"], [\"open\", \"triage\"]",
 			},
 			"severity": map[string]interface{}{
 				"type":        "array",
 				"items":       map[string]interface{}{"type": "string"},
-				"description": "Filter by severity IDs (NOT severity names). IMPORTANT: Call 'list_severities' tool first to discover available severity IDs. Example: [\"sev_1\", \"sev_2\"] or [\"01HXYZ...\"]. Multiple IDs will match any of them (OR logic).",
+				"description": "Filter by severity. Accepts BOTH severity names (\"Critical\", \"High\", \"sev_1\", etc.) AND full IDs. Tool automatically maps names to IDs. Multiple values will match any of them (OR logic). Examples: [\"Critical\"], [\"sev_1\", \"sev_2\"], [\"Critical\", \"High\"]",
 			},
 			"fields": map[string]interface{}{
 				"type":        "string",
@@ -113,16 +120,29 @@ func (t *ListIncidentsTool) Execute(args map[string]interface{}) (string, error)
 	if statuses, ok := args["status"].([]interface{}); ok {
 		for _, s := range statuses {
 			if str, ok := s.(string); ok {
-				opts.Status = append(opts.Status, str)
+				// Map common status names to correct categories
+				mappedStatus := mapStatusToCategory(str)
+				opts.Status = append(opts.Status, mappedStatus)
 			}
 		}
 	}
 
 	if severities, ok := args["severity"].([]interface{}); ok {
+		// Collect severity names/IDs to map
+		var severityInputs []string
 		for _, s := range severities {
 			if str, ok := s.(string); ok {
-				opts.Severity = append(opts.Severity, str)
+				severityInputs = append(severityInputs, str)
 			}
+		}
+
+		// Map severity names to IDs
+		if len(severityInputs) > 0 {
+			mappedSeverities, err := t.mapSeveritiesToIDs(severityInputs)
+			if err != nil {
+				return "", fmt.Errorf("failed to map severities: %w", err)
+			}
+			opts.Severity = mappedSeverities
 		}
 	}
 
@@ -134,6 +154,82 @@ func (t *ListIncidentsTool) Execute(args map[string]interface{}) (string, error)
 	// Apply field filtering if requested
 	fieldsStr, _ := args["fields"].(string)
 	return FilterFields(resp, fieldsStr)
+}
+
+// mapStatusToCategory maps common status names to their correct API category values
+func mapStatusToCategory(status string) string {
+	// Map common aliases to correct category values
+	statusMap := map[string]string{
+		"active":        "live",
+		"open":          "live",
+		"ongoing":       "live",
+		"investigating": "live",
+		"in_progress":   "live",
+		"resolved":      "closed",
+		"completed":     "closed",
+		"done":          "closed",
+		"postmortem":    "post_incident",
+		"retrospective": "post_incident",
+	}
+
+	// Check if it's an alias
+	if mapped, ok := statusMap[strings.ToLower(status)]; ok {
+		return mapped
+	}
+
+	// Return as-is if already correct or unknown (let API handle validation)
+	return status
+}
+
+// mapSeveritiesToIDs fetches the severity list and maps names to IDs
+func (t *ListIncidentsTool) mapSeveritiesToIDs(inputs []string) ([]string, error) {
+	// Fetch all severities
+	severities, err := t.client.ListSeverities()
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch severities for mapping: %w", err)
+	}
+
+	// Build name-to-ID and ID-to-ID maps
+	nameToID := make(map[string]string)
+	idToID := make(map[string]string)
+	for _, sev := range severities.Severities {
+		// Map by name (case-insensitive)
+		nameToID[strings.ToLower(sev.Name)] = sev.ID
+		// Map by ID (for passthrough)
+		idToID[sev.ID] = sev.ID
+	}
+
+	// Map each input
+	var result []string
+	for _, input := range inputs {
+		inputLower := strings.ToLower(input)
+
+		// Try as ID first (direct match)
+		if id, ok := idToID[input]; ok {
+			result = append(result, id)
+			continue
+		}
+
+		// Try as name (case-insensitive)
+		if id, ok := nameToID[inputLower]; ok {
+			result = append(result, id)
+			continue
+		}
+
+		// If not found, return error with helpful message
+		return nil, fmt.Errorf("severity '%s' not found. Available severities: %s. Call list_severities to see all options", input, t.formatAvailableSeverities(severities.Severities))
+	}
+
+	return result, nil
+}
+
+// formatAvailableSeverities formats severity list for error messages
+func (t *ListIncidentsTool) formatAvailableSeverities(severities []incidentio.Severity) string {
+	var names []string
+	for _, sev := range severities {
+		names = append(names, fmt.Sprintf("%s (ID: %s)", sev.Name, sev.ID))
+	}
+	return strings.Join(names, ", ")
 }
 
 // GetIncidentTool retrieves a specific incident
