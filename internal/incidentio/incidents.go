@@ -9,10 +9,16 @@ import (
 
 // ListIncidentsOptions represents options for listing incidents
 type ListIncidentsOptions struct {
-	PageSize int
-	After    string
-	Status   []string
-	Severity []string
+	PageSize        int
+	After           string
+	Status          []string
+	Severity        []string
+	CreatedAtGTE    string // Greater than or equal to date filter (ISO 8601 format)
+	CreatedAtLTE    string // Less than or equal to date filter (ISO 8601 format)
+	CreatedAtRange  string // Date range filter (format: "2024-12-02~2024-12-08")
+	UpdatedAtGTE    string // Greater than or equal to date filter (ISO 8601 format)
+	UpdatedAtLTE    string // Less than or equal to date filter (ISO 8601 format)
+	UpdatedAtRange  string // Date range filter (format: "2024-12-02~2024-12-08")
 }
 
 // ListIncidentsResponse represents the response from listing incidents
@@ -43,6 +49,28 @@ func (c *Client) ListIncidents(opts *ListIncidentsOptions) (*ListIncidentsRespon
 			params.Add("severity[one_of]", severity)
 		}
 
+		// Add date filters for created_at
+		if opts.CreatedAtGTE != "" {
+			params.Set("created_at[gte]", opts.CreatedAtGTE)
+		}
+		if opts.CreatedAtLTE != "" {
+			params.Set("created_at[lte]", opts.CreatedAtLTE)
+		}
+		if opts.CreatedAtRange != "" {
+			params.Set("created_at[date_range]", opts.CreatedAtRange)
+		}
+
+		// Add date filters for updated_at
+		if opts.UpdatedAtGTE != "" {
+			params.Set("updated_at[gte]", opts.UpdatedAtGTE)
+		}
+		if opts.UpdatedAtLTE != "" {
+			params.Set("updated_at[lte]", opts.UpdatedAtLTE)
+		}
+		if opts.UpdatedAtRange != "" {
+			params.Set("updated_at[date_range]", opts.UpdatedAtRange)
+		}
+
 		respBody, err := c.doRequest("GET", "/incidents", params, nil)
 		if err != nil {
 			return nil, err
@@ -65,6 +93,28 @@ func (c *Client) ListIncidents(opts *ListIncidentsOptions) (*ListIncidentsRespon
 		}
 		for _, severity := range opts.Severity {
 			baseParams.Add("severity[one_of]", severity)
+		}
+
+		// Add date filters for created_at
+		if opts.CreatedAtGTE != "" {
+			baseParams.Set("created_at[gte]", opts.CreatedAtGTE)
+		}
+		if opts.CreatedAtLTE != "" {
+			baseParams.Set("created_at[lte]", opts.CreatedAtLTE)
+		}
+		if opts.CreatedAtRange != "" {
+			baseParams.Set("created_at[date_range]", opts.CreatedAtRange)
+		}
+
+		// Add date filters for updated_at
+		if opts.UpdatedAtGTE != "" {
+			baseParams.Set("updated_at[gte]", opts.UpdatedAtGTE)
+		}
+		if opts.UpdatedAtLTE != "" {
+			baseParams.Set("updated_at[lte]", opts.UpdatedAtLTE)
+		}
+		if opts.UpdatedAtRange != "" {
+			baseParams.Set("updated_at[date_range]", opts.UpdatedAtRange)
 		}
 	}
 

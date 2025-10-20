@@ -25,11 +25,20 @@ func (t *ListIncidentsTool) Name() string {
 func (t *ListIncidentsTool) Description() string {
 	return `List incidents from incident.io with optional filtering by status category and severity.
 
-USAGE WORKFLOW:
+IMPORTANT: Use this tool to get BROAD OVERVIEW information about many incidents (returns default essential fields only).
+Once you identify specific incidents of interest, use get_incident tool with the incident_id to retrieve COMPLETE DETAILS about individual incidents.
+
+RECOMMENDED WORKFLOW:
+1. Use list_incidents to discover and filter incidents (returns: id, reference, name, created_at, updated_at, slack_channel_id)
+2. Identify incidents of interest from the list
+3. Use get_incident with specific incident_id values to get full details (all fields) for those incidents
+4. This two-step approach minimizes context usage while providing comprehensive information when needed
+
+USAGE:
 1. Filter incidents using status categories (validated against your org's available categories)
 2. Filter by severity using names like "Critical", "sev_1", or full IDs (automatically mapped)
 3. Multiple values can be provided to match any of them (OR logic)
-4. Use 'fields' parameter to reduce context usage by selecting only needed fields
+4. Default fields provide essential overview; use 'fields' parameter only if you need different fields for the list
 5. For manual pagination, use 'after' parameter with the value from pagination_meta.after in previous response
 
 PARAMETERS:
@@ -52,7 +61,26 @@ PARAMETERS:
 - fields: Comma-separated list of fields to include in response (reduces context usage)
   * Top-level: "id,name,summary,reference"
   * Nested: "severity.name,incident_status.category,incident_type.name"
-  * Omit to return all fields
+  * Default: "id,reference,name,permalink,created_at,updated_at,slack_channel_id"
+  * Omit or leave empty to use default fields
+- created_at_gte: Filter incidents created on or after this date (ISO 8601 format)
+  * Example: "2024-12-01" or "2024-12-01T00:00:00Z"
+  * Useful for finding incidents created since a specific date
+- created_at_lte: Filter incidents created on or before this date (ISO 8601 format)
+  * Example: "2024-12-31" or "2024-12-31T23:59:59Z"
+  * Useful for finding incidents created up to a specific date
+- created_at_range: Filter incidents created within a date range (tilde-separated dates)
+  * Example: "2024-12-01~2024-12-31"
+  * More efficient than using both gte and lte for date ranges
+- updated_at_gte: Filter incidents updated on or after this date (ISO 8601 format)
+  * Example: "2024-12-01" or "2024-12-01T00:00:00Z"
+  * Useful for finding recently modified incidents
+- updated_at_lte: Filter incidents updated on or before this date (ISO 8601 format)
+  * Example: "2024-12-31" or "2024-12-31T23:59:59Z"
+  * Useful for finding incidents last updated before a specific date
+- updated_at_range: Filter incidents updated within a date range (tilde-separated dates)
+  * Example: "2024-12-01~2024-12-31"
+  * More efficient than using both gte and lte for date ranges
 
 VALIDATION:
 - Status categories are validated against your org's incident.io configuration
@@ -72,14 +100,19 @@ PAGINATION:
 - NOTE: total_record_count shows the total number of incidents matching your filters.
 
 EXAMPLES:
-- List all active incidents: {"status": ["active"]} or {"status": "active"}
+- List all active incidents (uses default fields): {"status": ["active"]} or {"status": "active"}
 - List critical incidents: {"severity": ["Critical"]} or {"severity": "Critical"}
 - List active high-severity incidents: {"status": ["active"], "severity": ["Critical", "High"]}
 - List triaging and active (array): {"status": ["triage", "active"]}
 - List triaging and active (string): {"status": "triage,active,learning"}
 - List closed incidents: {"status": ["closed"]} or {"status": "closed"}
 - Comma-separated severities: {"severity": "Critical,High,Medium"}
-- List with selected fields: {"status": "active", "fields": "id,name,severity.name,incident_status.category"}
+- List with custom fields: {"status": "active", "fields": "id,name,severity.name,incident_status.category"}
+- List incidents created after December 1st, 2024: {"created_at_gte": "2024-12-01"}
+- List incidents created before December 31st, 2024: {"created_at_lte": "2024-12-31"}
+- List incidents created in December 2024: {"created_at_range": "2024-12-01~2024-12-31"}
+- List incidents updated in the last week: {"updated_at_gte": "2024-12-15"}
+- List active incidents from specific date range: {"status": "active", "created_at_range": "2024-12-01~2024-12-08"}
 - Manual pagination: {"page_size": 10, "after": "01K7RPHSXGPM1V07NPW8V6J6RZ"}
 
 NOTE: Both status and severity are validated against live API data. If you receive an error about invalid values, the error message will list all available options for your organization.`
@@ -111,6 +144,31 @@ func (t *ListIncidentsTool) InputSchema() map[string]interface{} {
 			"fields": map[string]interface{}{
 				"type":        "string",
 				"description": GetIncidentFieldsDescription(),
+				"default":     "id,reference,name,permalink,created_at,updated_at,slack_channel_id",
+			},
+			"created_at_gte": map[string]interface{}{
+				"type":        "string",
+				"description": "Filter incidents created on or after this date (ISO 8601 format). Example: \"2024-12-01\" or \"2024-12-01T00:00:00Z\"",
+			},
+			"created_at_lte": map[string]interface{}{
+				"type":        "string",
+				"description": "Filter incidents created on or before this date (ISO 8601 format). Example: \"2024-12-31\" or \"2024-12-31T23:59:59Z\"",
+			},
+			"created_at_range": map[string]interface{}{
+				"type":        "string",
+				"description": "Filter incidents created within a date range using tilde-separated dates (ISO 8601 format). Example: \"2024-12-01~2024-12-31\"",
+			},
+			"updated_at_gte": map[string]interface{}{
+				"type":        "string",
+				"description": "Filter incidents updated on or after this date (ISO 8601 format). Example: \"2024-12-01\" or \"2024-12-01T00:00:00Z\"",
+			},
+			"updated_at_lte": map[string]interface{}{
+				"type":        "string",
+				"description": "Filter incidents updated on or before this date (ISO 8601 format). Example: \"2024-12-31\" or \"2024-12-31T23:59:59Z\"",
+			},
+			"updated_at_range": map[string]interface{}{
+				"type":        "string",
+				"description": "Filter incidents updated within a date range using tilde-separated dates (ISO 8601 format). Example: \"2024-12-01~2024-12-31\"",
 			},
 		},
 	}
@@ -183,13 +241,38 @@ func (t *ListIncidentsTool) Execute(args map[string]interface{}) (string, error)
 		opts.Severity = mappedSeverities
 	}
 
+	// Handle date filter parameters for created_at
+	if createdAtGTE, ok := args["created_at_gte"].(string); ok && createdAtGTE != "" {
+		opts.CreatedAtGTE = createdAtGTE
+	}
+	if createdAtLTE, ok := args["created_at_lte"].(string); ok && createdAtLTE != "" {
+		opts.CreatedAtLTE = createdAtLTE
+	}
+	if createdAtRange, ok := args["created_at_range"].(string); ok && createdAtRange != "" {
+		opts.CreatedAtRange = createdAtRange
+	}
+
+	// Handle date filter parameters for updated_at
+	if updatedAtGTE, ok := args["updated_at_gte"].(string); ok && updatedAtGTE != "" {
+		opts.UpdatedAtGTE = updatedAtGTE
+	}
+	if updatedAtLTE, ok := args["updated_at_lte"].(string); ok && updatedAtLTE != "" {
+		opts.UpdatedAtLTE = updatedAtLTE
+	}
+	if updatedAtRange, ok := args["updated_at_range"].(string); ok && updatedAtRange != "" {
+		opts.UpdatedAtRange = updatedAtRange
+	}
+
 	resp, err := t.client.ListIncidents(opts)
 	if err != nil {
 		return "", err
 	}
 
-	// Apply field filtering if requested
-	fieldsStr, _ := args["fields"].(string)
+	// Apply field filtering with default fields if not specified
+	fieldsStr, ok := args["fields"].(string)
+	if !ok || fieldsStr == "" {
+		fieldsStr = "id,reference,name,permalink,created_at,updated_at,slack_channel_id"
+	}
 	return FilterFields(resp, fieldsStr)
 }
 
@@ -331,24 +414,55 @@ func (t *GetIncidentTool) Name() string {
 }
 
 func (t *GetIncidentTool) Description() string {
-	return `Get detailed information about a specific incident.
+	return `Get COMPLETE, DETAILED information about a specific incident (returns all fields by default).
 
-USAGE WORKFLOW:
-1. Get incident ID from list_incidents
-2. Call this tool for complete incident details
-3. Review all fields including status, severity, timeline, and assignments
-4. Use 'fields' parameter to reduce context usage by selecting only needed fields
+IMPORTANT: This tool returns ALL incident data and should be used AFTER list_incidents to get full details about specific incidents.
+
+IDENTIFIER FORMATS SUPPORTED:
+This tool accepts multiple identifier formats for flexible incident lookup:
+1. Full incident ID: "01FDAG4SAP5TYPT98WGR2N7" (direct API call)
+2. Incident reference: "INC-123" or just "123" (direct API call - most efficient)
+3. Slack channel ID: "C123456789" (looks up via list_incidents)
+4. Slack channel name: "20251020-aws-outage-ci-impaired" (looks up via list_incidents, case-insensitive)
+
+RECOMMENDED WORKFLOW:
+1. First use list_incidents to discover incidents (returns only essential fields: id, reference, name, timestamps, slack_channel_id)
+2. Identify specific incident(s) of interest from the list
+3. Use THIS TOOL (get_incident) with ANY of the identifier formats to retrieve COMPLETE information:
+   - Full incident details (status, severity, timeline, assignments, custom fields)
+   - Related entities (incident type, status details, severity details)
+   - All timestamps and metadata
+   - Complete incident history and context
+4. Optionally use 'fields' parameter to limit response if you only need specific fields
+
+USAGE:
+1. Get incident identifier from list_incidents results or from Slack/reference
+2. Call this tool with the identifier (supports ID, reference, Slack channel ID/name)
+3. Tool automatically resolves the identifier to the incident ID
+4. Review comprehensive information including status, severity, timeline, assignments, and custom fields
+5. Use 'fields' parameter only if you need to reduce context by selecting specific fields (otherwise returns everything)
 
 PARAMETERS:
-- incident_id: Required. The incident ID to retrieve
+- incident_id: Required. Can be any of these formats:
+  * Full incident ID: "01FDAG4SAP5TYPT98WGR2N7"
+  * Incident reference: "INC-123" or "123"
+  * Slack channel ID: "C123456789"
+  * Slack channel name: "20251020-aws-outage-ci-impaired"
 - fields: Comma-separated list of fields to include in response (reduces context usage)
   * Top-level: "id,name,summary,reference"
   * Nested: "severity.name,incident_status.category,incident_type.name"
   * Omit to return all fields
 
 EXAMPLES:
-- Get incident: {"incident_id": "01HXYZ..."}
-- Get with selected fields: {"incident_id": "01HXYZ...", "fields": "id,name,severity.name,incident_status.category"}`
+- Get by full ID: {"incident_id": "01HXYZ..."}
+- Get by reference: {"incident_id": "INC-123"} or {"incident_id": "123"}
+- Get by Slack channel ID: {"incident_id": "C123456789"}
+- Get by Slack channel name: {"incident_id": "20251020-aws-outage-ci-impaired"}
+- Get with selected fields: {"incident_id": "INC-123", "fields": "id,name,severity.name,incident_status.category"}
+
+PERFORMANCE NOTES:
+- Using incident ID or reference is most efficient (direct API call)
+- Using Slack channel ID/name requires an additional list_incidents lookup (slight overhead)`
 }
 
 func (t *GetIncidentTool) InputSchema() map[string]interface{} {
@@ -357,7 +471,7 @@ func (t *GetIncidentTool) InputSchema() map[string]interface{} {
 		"properties": map[string]interface{}{
 			"incident_id": map[string]interface{}{
 				"type":        "string",
-				"description": "The incident ID",
+				"description": "Incident identifier in any of these formats: full ID (01FDAG4SAP5TYPT98WGR2N7), reference (INC-123 or 123), Slack channel ID (C123456789), or Slack channel name (20251020-aws-outage-ci-impaired). Tool automatically resolves to incident ID.",
 			},
 			"fields": map[string]interface{}{
 				"type":        "string",
@@ -370,8 +484,8 @@ func (t *GetIncidentTool) InputSchema() map[string]interface{} {
 }
 
 func (t *GetIncidentTool) Execute(args map[string]interface{}) (string, error) {
-	id, ok := args["incident_id"].(string)
-	if !ok || id == "" {
+	identifier, ok := args["incident_id"].(string)
+	if !ok || identifier == "" {
 		argDetails := make(map[string]interface{})
 		for key, value := range args {
 			argDetails[key] = value
@@ -379,7 +493,13 @@ func (t *GetIncidentTool) Execute(args map[string]interface{}) (string, error) {
 		return "", fmt.Errorf("incident_id parameter is required and must be a non-empty string. Received parameters: %+v", argDetails)
 	}
 
-	incident, err := t.client.GetIncident(id)
+	// Resolve identifier to actual incident ID if needed
+	incidentID, err := t.resolveIncidentIdentifier(identifier)
+	if err != nil {
+		return "", err
+	}
+
+	incident, err := t.client.GetIncident(incidentID)
 	if err != nil {
 		return "", err
 	}
@@ -387,6 +507,100 @@ func (t *GetIncidentTool) Execute(args map[string]interface{}) (string, error) {
 	// Apply field filtering if requested
 	fieldsStr, _ := args["fields"].(string)
 	return FilterFields(incident, fieldsStr)
+}
+
+// resolveIncidentIdentifier resolves various identifier formats to an incident ID
+// Supports: incident ID (01FDAG4SAP5TYPT98WGR2N7), reference (INC-123 or just 123),
+// Slack channel ID (C123456789), or Slack channel name (20251020-aws-outage-ci-impaired)
+func (t *GetIncidentTool) resolveIncidentIdentifier(identifier string) (string, error) {
+	// Check if it's already a full incident ID (starts with 01 and is alphanumeric)
+	if strings.HasPrefix(identifier, "01") && len(identifier) > 20 {
+		return identifier, nil
+	}
+
+	// Check if it's a numeric reference (123) - try API directly as it supports this
+	if isNumericReference(identifier) {
+		return identifier, nil
+	}
+
+	// Check if it's a reference format (INC-123)
+	if strings.HasPrefix(strings.ToUpper(identifier), "INC-") {
+		// Extract numeric part and let API handle it
+		numericPart := strings.TrimPrefix(strings.ToUpper(identifier), "INC-")
+		return numericPart, nil
+	}
+
+	// Check if it's a Slack channel ID (starts with C and is alphanumeric)
+	if strings.HasPrefix(identifier, "C") && len(identifier) > 5 && isAlphanumeric(identifier) {
+		return t.lookupIncidentBySlackChannelID(identifier)
+	}
+
+	// Otherwise, treat as Slack channel name
+	return t.lookupIncidentBySlackChannelName(identifier)
+}
+
+// lookupIncidentBySlackChannelID finds incident ID by Slack channel ID
+func (t *GetIncidentTool) lookupIncidentBySlackChannelID(channelID string) (string, error) {
+	// Use list_incidents with minimal fields to find the incident
+	resp, err := t.client.ListIncidents(&incidentio.ListIncidentsOptions{
+		PageSize: 250, // Use max page size for efficiency
+	})
+	if err != nil {
+		return "", fmt.Errorf("failed to lookup incident by Slack channel ID: %w", err)
+	}
+
+	// Search for matching incident
+	for _, incident := range resp.Incidents {
+		if incident.SlackChannelID == channelID {
+			return incident.ID, nil
+		}
+	}
+
+	return "", fmt.Errorf("no incident found with Slack channel ID: %s", channelID)
+}
+
+// lookupIncidentBySlackChannelName finds incident ID by Slack channel name
+func (t *GetIncidentTool) lookupIncidentBySlackChannelName(channelName string) (string, error) {
+	// Use list_incidents with minimal fields to find the incident
+	resp, err := t.client.ListIncidents(&incidentio.ListIncidentsOptions{
+		PageSize: 250, // Use max page size for efficiency
+	})
+	if err != nil {
+		return "", fmt.Errorf("failed to lookup incident by Slack channel name: %w", err)
+	}
+
+	// Search for matching incident (case-insensitive)
+	channelNameLower := strings.ToLower(channelName)
+	for _, incident := range resp.Incidents {
+		if strings.ToLower(incident.SlackChannelName) == channelNameLower {
+			return incident.ID, nil
+		}
+	}
+
+	return "", fmt.Errorf("no incident found with Slack channel name: %s", channelName)
+}
+
+// isNumericReference checks if string contains only digits
+func isNumericReference(s string) bool {
+	if len(s) == 0 {
+		return false
+	}
+	for _, c := range s {
+		if c < '0' || c > '9' {
+			return false
+		}
+	}
+	return true
+}
+
+// isAlphanumeric checks if string contains only alphanumeric characters
+func isAlphanumeric(s string) bool {
+	for _, c := range s {
+		if !((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9')) {
+			return false
+		}
+	}
+	return true
 }
 
 // CreateIncidentTool creates a new incident
