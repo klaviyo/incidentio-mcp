@@ -94,7 +94,7 @@ func TestListIncidentsSeverityFilter(t *testing.T) {
 			name: "severity and status combined filter",
 			params: &ListIncidentsOptions{
 				PageSize: 50,
-				Status:   []string{"active", "triage"},
+				Status:   []string{"live", "triage"},
 				Severity: []string{"sev_1", "sev_2"},
 			},
 			expectedSeverityParam: []string{"sev_1", "sev_2"},
@@ -184,9 +184,9 @@ func TestListIncidentsSeverityFilter(t *testing.T) {
 
 					// Verify status parameter if present
 					if tt.params != nil && len(tt.params.Status) > 0 {
-						statusValues := req.URL.Query()["status"]
+						statusValues := req.URL.Query()["status_category[one_of]"]
 						if len(statusValues) != len(tt.params.Status) {
-							t.Errorf("expected %d status values, got %d", len(tt.params.Status), len(statusValues))
+							t.Errorf("expected %d status_category[one_of] values, got %d", len(tt.params.Status), len(statusValues))
 						}
 					}
 

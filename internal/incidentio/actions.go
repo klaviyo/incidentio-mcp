@@ -78,10 +78,10 @@ func (c *Client) ListActions(opts *ListActionsOptions) (*ListActionsResponse, er
 			PaginationMeta: struct {
 				After      string `json:"after,omitempty"`
 				PageSize   int    `json:"page_size"`
-				TotalCount int    `json:"total_count"`
+				TotalRecordCount int    `json:"total_record_count,omitempty"`
 			}{
 				PageSize:   pageSize,
-				TotalCount: 0,
+				TotalRecordCount: 0,
 			},
 		},
 	}, nil

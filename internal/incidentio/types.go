@@ -265,9 +265,9 @@ type ListIncidentUpdatesResponse struct {
 // ListResponse represents a paginated list response
 type ListResponse struct {
 	PaginationMeta struct {
-		After      string `json:"after,omitempty"`
-		PageSize   int    `json:"page_size"`
-		TotalCount int    `json:"total_count"`
+		After            string `json:"after,omitempty"`
+		PageSize         int    `json:"page_size"`
+		TotalRecordCount int    `json:"total_record_count,omitempty"`
 	} `json:"pagination_meta"`
 }
 

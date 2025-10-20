@@ -37,7 +37,7 @@ func (c *Client) ListIncidents(opts *ListIncidentsOptions) (*ListIncidentsRespon
 		}
 
 		for _, status := range opts.Status {
-			params.Add("status", status)
+			params.Add("status_category[one_of]", status)
 		}
 		for _, severity := range opts.Severity {
 			params.Add("severity[one_of]", severity)
@@ -53,6 +53,7 @@ func (c *Client) ListIncidents(opts *ListIncidentsOptions) (*ListIncidentsRespon
 			return nil, fmt.Errorf("failed to unmarshal response: %w", err)
 		}
 
+		// API returns total_record_count for single page requests
 		return &response, nil
 	}
 
@@ -60,7 +61,7 @@ func (c *Client) ListIncidents(opts *ListIncidentsOptions) (*ListIncidentsRespon
 	baseParams := url.Values{}
 	if opts != nil {
 		for _, status := range opts.Status {
-			baseParams.Add("status", status)
+			baseParams.Add("status_category[one_of]", status)
 		}
 		for _, severity := range opts.Severity {
 			baseParams.Add("severity[one_of]", severity)
@@ -101,16 +102,17 @@ func (c *Client) ListIncidents(opts *ListIncidentsOptions) (*ListIncidentsRespon
 	}
 
 	// Return combined results
+	// Note: Auto-pagination returns all results, so total_record_count equals the number fetched
 	return &ListIncidentsResponse{
 		Incidents: allIncidents,
 		ListResponse: ListResponse{
 			PaginationMeta: struct {
-				After      string `json:"after,omitempty"`
-				PageSize   int    `json:"page_size"`
-				TotalCount int    `json:"total_count"`
+				After            string `json:"after,omitempty"`
+				PageSize         int    `json:"page_size"`
+				TotalRecordCount int    `json:"total_record_count,omitempty"`
 			}{
-				PageSize:   pageSize,
-				TotalCount: 0,
+				PageSize:         pageSize,
+				TotalRecordCount: len(allIncidents), // Total count is number of incidents fetched
 			},
 		},
 	}, nil

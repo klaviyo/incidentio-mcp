@@ -18,7 +18,7 @@ func TestListIncidents(t *testing.T) {
 			name: "successful list incidents",
 			params: &ListIncidentsOptions{
 				PageSize: 10,
-				Status:   []string{"active", "resolved"},
+				Status:   []string{"live", "closed"},
 			},
 			mockResponse: `{
 				"incidents": [
@@ -101,9 +101,9 @@ func TestListIncidents(t *testing.T) {
 						}
 						if len(tt.params.Status) > 0 {
 							// Status params should be present
-							statusValues := req.URL.Query()["status"]
+							statusValues := req.URL.Query()["status_category[one_of]"]
 							if len(statusValues) != len(tt.params.Status) {
-								t.Errorf("expected %d status values, got %d", len(tt.params.Status), len(statusValues))
+								t.Errorf("expected %d status_category[one_of] values, got %d", len(tt.params.Status), len(statusValues))
 							}
 						}
 					}

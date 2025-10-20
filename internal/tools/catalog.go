@@ -240,7 +240,7 @@ func (t *ListCatalogEntriesTool) Execute(args map[string]interface{}) (string, e
 	if result.PaginationMeta.After != "" {
 		output += fmt.Sprintf("Pagination: Next page available (after: %s)\n", result.PaginationMeta.After)
 	}
-	output += fmt.Sprintf("Total entries: %d\n", result.PaginationMeta.TotalCount)
+	output += fmt.Sprintf("Total entries: %d\n", result.PaginationMeta.TotalRecordCount)
 
 	// Also return the raw JSON
 	jsonOutput, err := json.MarshalIndent(result, "", "  ")
