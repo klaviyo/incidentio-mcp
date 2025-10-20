@@ -101,9 +101,9 @@ func TestListIncidents(t *testing.T) {
 						}
 						if len(tt.params.Status) > 0 {
 							// Status params should be present
-							statusValues := req.URL.Query()["incident_status[category][one_of]"]
+							statusValues := req.URL.Query()["status_category[one_of]"]
 							if len(statusValues) != len(tt.params.Status) {
-								t.Errorf("expected %d incident_status[category][one_of] values, got %d", len(tt.params.Status), len(statusValues))
+								t.Errorf("expected %d status_category[one_of] values, got %d", len(tt.params.Status), len(statusValues))
 							}
 						}
 					}

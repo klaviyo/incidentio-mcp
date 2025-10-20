@@ -37,7 +37,7 @@ func (c *Client) ListIncidents(opts *ListIncidentsOptions) (*ListIncidentsRespon
 		}
 
 		for _, status := range opts.Status {
-			params.Add("incident_status[category][one_of]", status)
+			params.Add("status_category[one_of]", status)
 		}
 		for _, severity := range opts.Severity {
 			params.Add("severity[one_of]", severity)
@@ -61,7 +61,7 @@ func (c *Client) ListIncidents(opts *ListIncidentsOptions) (*ListIncidentsRespon
 	baseParams := url.Values{}
 	if opts != nil {
 		for _, status := range opts.Status {
-			baseParams.Add("incident_status[category][one_of]", status)
+			baseParams.Add("status_category[one_of]", status)
 		}
 		for _, severity := range opts.Severity {
 			baseParams.Add("severity[one_of]", severity)
