@@ -35,12 +35,13 @@ USAGE WORKFLOW:
 PARAMETERS:
 - page_size: Number of results (default 25, max 250). Set to 0 or omit for auto-pagination.
 - after: The incident ID to start pagination after. Use the exact value from pagination_meta.after in previous response.
-- status: Array of status category values. Validated against your org's available categories:
-  * Common categories: active, triage, learning, closed, merged, declined, canceled, paused
-  * Case-insensitive matching (e.g., "Active", "ACTIVE", "active" all work)
+- status: Array of status values. Accepts friendly aliases OR direct API categories:
+  * Aliases: "active" → "live", "open" → "live", "resolved" → "closed", "completed" → "closed"
+  * API categories: live, triage, learning, closed, merged, declined, canceled, paused (varies by org)
+  * Case-insensitive matching for both aliases and categories
   * Tool validates against your org's exact incident.io configuration
-  * Invalid values return helpful error with all available options
-  * Examples: ["active"], ["triage"], ["triage", "active"], ["closed"]
+  * Invalid values return helpful error with all available options and aliases
+  * Examples: ["active"], ["live"], ["triage", "active"], ["resolved"]
 - severity: Array of severity names OR IDs. Tool automatically maps names to IDs:
   * By name: "Critical", "High", "Medium", "Low", "sev_1", "sev_2", etc.
   * By ID: "01K56QEGAD95K9K5ZQ9CCPF6EF" (full UUID format)
@@ -94,7 +95,7 @@ func (t *ListIncidentsTool) InputSchema() map[string]interface{} {
 			"status": map[string]interface{}{
 				"type":        "array",
 				"items":       map[string]interface{}{"type": "string"},
-				"description": "Filter by incident status category. Validated against your org's available categories (e.g., active, triage, learning, closed, merged, declined, canceled, paused). Case-insensitive matching. Invalid categories return helpful errors listing all available options. Multiple values match any of them (OR logic). Examples: [\"active\"], [\"triage\", \"active\"], [\"closed\"]",
+				"description": "Filter by incident status. Accepts aliases (\"active\" → \"live\", \"resolved\" → \"closed\") OR direct categories (live, triage, learning, closed, merged, declined, canceled, paused). Case-insensitive. Validated against your org's configuration. Invalid values return helpful errors with available options and aliases. Multiple values match any of them (OR logic). Examples: [\"active\"], [\"live\"], [\"triage\", \"active\"]",
 			},
 			"severity": map[string]interface{}{
 				"type":        "array",
@@ -185,19 +186,40 @@ func (t *ListIncidentsTool) validateStatusCategories(inputs []string) ([]string,
 		categoryMap[categoryLower] = status.Category
 	}
 
+	// Define common aliases that map to actual API categories
+	aliasMap := map[string]string{
+		"active":      "live",
+		"open":        "live",
+		"ongoing":     "live",
+		"in_progress": "live",
+		"resolved":    "closed",
+		"completed":   "closed",
+		"done":        "closed",
+	}
+
 	// Validate each input and normalize to API format
 	var result []string
 	for _, input := range inputs {
 		inputLower := strings.ToLower(input)
 
-		// Check if it matches a valid category (case-insensitive lookup)
+		// First, check if it's an alias
+		if aliasTarget, isAlias := aliasMap[inputLower]; isAlias {
+			// Verify the alias target exists in this org's categories
+			if apiCategory, ok := categoryMap[aliasTarget]; ok {
+				result = append(result, apiCategory)
+				continue
+			}
+			// Alias target not available in this org, fall through to error
+		}
+
+		// Check if it matches a valid category directly (case-insensitive lookup)
 		if apiCategory, ok := categoryMap[inputLower]; ok {
 			result = append(result, apiCategory)
 			continue
 		}
 
-		// If not found, return error with helpful message
-		return nil, fmt.Errorf("status category '%s' not found. Available categories: %s. Categories are case-insensitive. Call list_incident_statuses to see all status options with their categories", input, t.formatAvailableCategories(statuses.IncidentStatuses))
+		// If not found, return error with helpful message including aliases
+		return nil, fmt.Errorf("status category '%s' not found. Available categories: %s. You can also use aliases: 'active' → 'live', 'resolved' → 'closed'. Call list_incident_statuses to see all status options", input, t.formatAvailableCategories(statuses.IncidentStatuses))
 	}
 
 	return result, nil
