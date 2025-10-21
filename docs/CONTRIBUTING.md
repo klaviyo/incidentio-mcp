@@ -106,19 +106,19 @@ make build
 .
 ├── cmd/              # Application entrypoints
 ├── internal/         # Private application code
-│   ├── incidentio/   # incident.io API client
-│   ├── server/       # MCP server implementation
-│   └── tools/        # MCP tool implementations
+│   ├── client/       # incident.io API client
+│   ├── handlers/     # MCP tool implementations
+│   └── server/       # MCP server implementation
 ├── pkg/              # Public libraries
-└── test/             # Additional test files
+└── tests/            # Additional test files
 ```
 
 ## Adding New Tools
 
-1. Create the API client method in `internal/incidentio/`
-2. Add types to `internal/incidentio/types.go`
-3. Create the tool wrapper in `internal/tools/`
-4. Register the tool in `internal/server/server.go`
+1. Create the API client method in `internal/client/`
+2. Add types to `internal/client/types.go`
+3. Create the tool wrapper in `internal/handlers/`
+4. Register the tool in `internal/handlers/registry.go`
 5. Add tests for both the API client and tool
 6. Update the README with the new tool
 
