@@ -67,10 +67,18 @@ func (t *ListIncidentsTool) InputSchema() map[string]interface{} {
 				"items":       map[string]interface{}{"type": "string"},
 				"description": "Filter by status. Values: triage, active, investigating, monitoring, resolved, closed. Example: ['active', 'triage']",
 			},
-			"severity": map[string]interface{}{
+			"severity_one_of": map[string]interface{}{
 				"type":        "array",
 				"items":       map[string]interface{}{"type": "string"},
-				"description": "Filter by severity IDs or names. Use list_severities to get available options. Example: ['sev_critical', 'sev_high']",
+				"description": "Filter by exact severity IDs. Use list_severities to get IDs. Example: ['01ABC123']",
+			},
+			"severity_gte": map[string]interface{}{
+				"type":        "string",
+				"description": "Filter by severity rank >= this ID. Returns this severity and all more severe. Example: 'sev_major_id' returns Major, Critical.",
+			},
+			"severity_lte": map[string]interface{}{
+				"type":        "string",
+				"description": "Filter by severity rank <= this ID. Returns this severity and all less severe. Example: 'sev_major_id' returns Major, Minor, Low.",
 			},
 			"created_at_gte": map[string]interface{}{
 				"type":        "string",
@@ -121,12 +129,20 @@ func (t *ListIncidentsTool) Execute(args map[string]interface{}) (string, error)
 		}
 	}
 
-	if severities, ok := args["severity"].([]interface{}); ok {
+	if severities, ok := args["severity_one_of"].([]interface{}); ok {
 		for _, s := range severities {
 			if str, ok := s.(string); ok {
-				opts.Severity = append(opts.Severity, str)
+				opts.SeverityOneOf = append(opts.SeverityOneOf, str)
 			}
 		}
+	}
+
+	if severityGte, ok := args["severity_gte"].(string); ok && severityGte != "" {
+		opts.SeverityGte = severityGte
+	}
+
+	if severityLte, ok := args["severity_lte"].(string); ok && severityLte != "" {
+		opts.SeverityLte = severityLte
 	}
 
 	if createdAtGte, ok := args["created_at_gte"].(string); ok && createdAtGte != "" {

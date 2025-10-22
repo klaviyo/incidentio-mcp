@@ -100,8 +100,8 @@ func TestListIncidents(t *testing.T) {
 							assertEqual(t, "10", req.URL.Query().Get("page_size"))
 						}
 						if len(tt.params.Status) > 0 {
-							// Status params should be present
-							statusValues := req.URL.Query()["status"]
+							// Status params should be present with bracket notation
+							statusValues := req.URL.Query()["status[one_of]"]
 							if len(statusValues) != len(tt.params.Status) {
 								t.Errorf("expected %d status values, got %d", len(tt.params.Status), len(statusValues))
 							}

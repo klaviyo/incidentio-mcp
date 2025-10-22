@@ -13,13 +13,16 @@ type ListIncidentsOptions struct {
 	PageSize           int
 	After              string
 	Status             []string
-	Severity           []string
-	CreatedAtGte       string            // Greater than or equal to (format: "2024-12-02")
-	CreatedAtLte       string            // Less than or equal to (format: "2024-12-02")
-	CreatedAtDateRange string            // Date range (format: "2024-12-02~2024-12-08")
-	UpdatedAtGte       string            // Greater than or equal to
-	UpdatedAtLte       string            // Less than or equal to
-	UpdatedAtDateRange string            // Date range (format: "2024-12-02~2024-12-08")
+	Severity           []string // Deprecated: Use SeverityOneOf, SeverityGte, or SeverityLte
+	SeverityOneOf      []string // Filter by exact severity IDs (severity[one_of]=ID)
+	SeverityGte        string   // Filter by severity rank >= this ID (severity[gte]=ID)
+	SeverityLte        string   // Filter by severity rank <= this ID (severity[lte]=ID)
+	CreatedAtGte       string   // Greater than or equal to (format: "2024-12-02")
+	CreatedAtLte       string   // Less than or equal to (format: "2024-12-02")
+	CreatedAtDateRange string   // Date range (format: "2024-12-02~2024-12-08")
+	UpdatedAtGte       string   // Greater than or equal to
+	UpdatedAtLte       string   // Less than or equal to
+	UpdatedAtDateRange string   // Date range (format: "2024-12-02~2024-12-08")
 	CustomFieldOneOf   map[string]string // custom_field[ID][one_of]=option_id
 	CustomFieldNotIn   map[string]string // custom_field[ID][not_in]=option_id
 }
@@ -54,10 +57,16 @@ func (c *Client) ListIncidents(opts *ListIncidentsOptions) (*ListIncidentsRespon
 
 	if opts != nil {
 		for _, status := range opts.Status {
-			params.Add("status", status)
+			params.Add("status[one_of]", status)
 		}
-		for _, severity := range opts.Severity {
-			params.Add("severity", severity)
+		for _, severity := range opts.SeverityOneOf {
+			params.Add("severity[one_of]", severity)
+		}
+		if opts.SeverityGte != "" {
+			params.Add("severity[gte]", opts.SeverityGte)
+		}
+		if opts.SeverityLte != "" {
+			params.Add("severity[lte]", opts.SeverityLte)
 		}
 		if opts.CreatedAtGte != "" {
 			params.Add("created_at[gte]", opts.CreatedAtGte)
