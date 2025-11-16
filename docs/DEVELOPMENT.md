@@ -54,7 +54,7 @@ This script will:
 go test ./...
 
 # Run specific package tests
-go test ./internal/incidentio/...
+go test ./internal/client/...
 
 # Run tests with verbose output
 go test -v ./...
@@ -82,8 +82,8 @@ golangci-lint run
 ## Project Structure
 
 - `/cmd/` - Entry points for different server configurations
-- `/internal/incidentio/` - incident.io API client implementation  
-- `/internal/tools/` - MCP tool implementations
+- `/internal/client/` - incident.io API client implementation
+- `/internal/handlers/` - MCP tool implementations
 - `/internal/server/` - MCP server logic
 - `/tests/` - Integration test scripts
 

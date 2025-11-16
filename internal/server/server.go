@@ -7,18 +7,18 @@ import (
 	"io"
 	"os"
 
-	"github.com/incident-io/incidentio-mcp-golang/internal/incidentio"
-	"github.com/incident-io/incidentio-mcp-golang/internal/tools"
+	"github.com/incident-io/incidentio-mcp-golang/internal/client"
+	"github.com/incident-io/incidentio-mcp-golang/internal/handlers"
 	"github.com/incident-io/incidentio-mcp-golang/pkg/mcp"
 )
 
 type Server struct {
-	tools map[string]tools.Tool
+	tools map[string]handlers.Handler
 }
 
 func New() *Server {
 	return &Server{
-		tools: make(map[string]tools.Tool),
+		tools: make(map[string]handlers.Handler),
 	}
 }
 
@@ -58,63 +58,18 @@ func (s *Server) Start(ctx context.Context) error {
 
 func (s *Server) registerTools() {
 	// Initialize incident.io client
-	client, err := incidentio.NewClient()
+	c, err := client.NewClient()
 	if err != nil {
 		// If client initialization fails, no tools are registered
 		return
 	}
 
-	// Register Incident tools
-	s.tools["list_incidents"] = tools.NewListIncidentsTool(client)
-	s.tools["get_incident"] = tools.NewGetIncidentTool(client)
-	s.tools["create_incident"] = tools.NewCreateIncidentTool(client)
-	s.tools["create_incident_smart"] = tools.NewCreateIncidentEnhancedTool(client)
-	s.tools["update_incident"] = tools.NewUpdateIncidentTool(client)
-	s.tools["close_incident"] = tools.NewCloseIncidentTool(client)
-	s.tools["list_incident_statuses"] = tools.NewListIncidentStatusesTool(client)
-	s.tools["list_incident_types"] = tools.NewListIncidentTypesTool(client)
-	s.tools["list_severities"] = tools.NewListSeveritiesTool(client)
-	s.tools["get_severity"] = tools.NewGetSeverityTool(client)
+	// Use the new registry to register all tools
+	registry := handlers.NewToolRegistry()
+	registry.RegisterAllTools(c)
 
-	// Register Incident Update tools
-	s.tools["list_incident_updates"] = tools.NewListIncidentUpdatesTool(client)
-	s.tools["get_incident_update"] = tools.NewGetIncidentUpdateTool(client)
-	s.tools["create_incident_update"] = tools.NewCreateIncidentUpdateTool(client)
-	s.tools["delete_incident_update"] = tools.NewDeleteIncidentUpdateTool(client)
-
-	// Register Alert tools
-	s.tools["list_alerts"] = tools.NewListAlertsTool(client)
-	s.tools["get_alert"] = tools.NewGetAlertTool(client)
-	s.tools["list_alerts_for_incident"] = tools.NewListAlertsForIncidentTool(client)
-
-	// Register Action tools
-	s.tools["list_actions"] = tools.NewListActionsTool(client)
-	s.tools["get_action"] = tools.NewGetActionTool(client)
-
-	// Register Role tools
-	s.tools["list_available_incident_roles"] = tools.NewListIncidentRolesTool(client)
-	s.tools["list_users"] = tools.NewListUsersTool(client)
-	s.tools["assign_incident_role"] = tools.NewAssignIncidentRoleTool(client)
-
-	// Register Workflow tools
-	s.tools["list_workflows"] = tools.NewListWorkflowsTool(client)
-	s.tools["get_workflow"] = tools.NewGetWorkflowTool(client)
-	s.tools["update_workflow"] = tools.NewUpdateWorkflowTool(client)
-
-	// Register Alert Route tools
-	s.tools["list_alert_routes"] = tools.NewListAlertRoutesTool(client)
-	s.tools["get_alert_route"] = tools.NewGetAlertRouteTool(client)
-	s.tools["create_alert_route"] = tools.NewCreateAlertRouteTool(client)
-	s.tools["update_alert_route"] = tools.NewUpdateAlertRouteTool(client)
-
-	// Register Alert Source and Event tools
-	s.tools["list_alert_sources"] = tools.NewListAlertSourcesTool(client)
-	s.tools["create_alert_event"] = tools.NewCreateAlertEventTool(client)
-
-	// Register Catalog tools
-	s.tools["list_catalog_types"] = tools.NewListCatalogTypesTool(client)
-	s.tools["list_catalog_entries"] = tools.NewListCatalogEntriesTool(client)
-	s.tools["update_catalog_entry"] = tools.NewUpdateCatalogEntryTool(client)
+	// Copy tools from registry to server
+	s.tools = registry.GetTools()
 }
 
 func (s *Server) handleMessage(msg *mcp.Message) (*mcp.Message, error) {
