@@ -1,11 +1,11 @@
-package tools
+package handlers
 
 import (
 	"fmt"
 	"reflect"
 	"strings"
 
-	"github.com/incident-io/incidentio-mcp-golang/internal/incidentio"
+	"github.com/incident-io/incidentio-mcp-golang/internal/client"
 )
 
 // GenerateFieldsDescription generates a comprehensive fields description from a Go type
@@ -123,10 +123,10 @@ func isTimeType(t reflect.Type) bool {
 
 // GetIncidentFieldsDescription returns the fields description for Incident type
 func GetIncidentFieldsDescription() string {
-	return GenerateFieldsDescription(incidentio.Incident{})
+	return GenerateFieldsDescription(client.Incident{})
 }
 
 // GetAlertFieldsDescription returns the fields description for Alert type
 func GetAlertFieldsDescription() string {
-	return GenerateFieldsDescription(incidentio.Alert{})
+	return GenerateFieldsDescription(client.Alert{})
 }

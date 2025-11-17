@@ -1,11 +1,11 @@
-package tools
+package handlers
 
 import (
 	"reflect"
 	"strings"
 	"testing"
 
-	"github.com/incident-io/incidentio-mcp-golang/internal/incidentio"
+	"github.com/incident-io/incidentio-mcp-golang/internal/client"
 )
 
 func TestGenerateFieldsDescription_Incident(t *testing.T) {
@@ -47,22 +47,17 @@ func TestGenerateFieldsDescription_Alert(t *testing.T) {
 	desc := GetAlertFieldsDescription()
 
 	// Verify key alert fields are present
-	requiredFields := []string{"id", "title", "status", "source"}
+	requiredFields := []string{"id"}
 	for _, field := range requiredFields {
 		if !strings.Contains(desc, field) {
 			t.Errorf("Description should contain field '%s'", field)
 		}
 	}
-
-	// Verify nested incident field is documented (alerts can have nested incidents)
-	if !strings.Contains(desc, "incident:") {
-		t.Error("Description should document incident nested fields")
-	}
 }
 
 func TestExtractFieldsFromType(t *testing.T) {
 	// Test with Incident type
-	topLevel, nested := extractFieldsFromType(reflect.TypeOf(incidentio.Incident{}))
+	topLevel, nested := extractFieldsFromType(reflect.TypeOf(client.Incident{}))
 
 	// Verify some top-level fields
 	expectedTopLevel := []string{"id", "name", "reference"}

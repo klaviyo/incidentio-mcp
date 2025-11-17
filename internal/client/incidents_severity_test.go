@@ -1,7 +1,8 @@
-package incidentio
+package client
 
 import (
 	"net/http"
+	"strings"
 	"testing"
 )
 
@@ -21,7 +22,7 @@ func TestListIncidentsSeverityFilter(t *testing.T) {
 			name: "single severity filter",
 			params: &ListIncidentsOptions{
 				PageSize: 10,
-				Severity: []string{"sev_1"},
+				SeverityOneOf: []string{"sev_1"},
 			},
 			expectedSeverityParam: []string{"sev_1"},
 			mockResponse: `{
@@ -54,7 +55,7 @@ func TestListIncidentsSeverityFilter(t *testing.T) {
 			name: "multiple severity filter",
 			params: &ListIncidentsOptions{
 				PageSize: 25,
-				Severity: []string{"sev_1", "sev_2", "sev_3"},
+				SeverityOneOf: []string{"sev_1", "sev_2", "sev_3"},
 			},
 			expectedSeverityParam: []string{"sev_1", "sev_2", "sev_3"},
 			mockResponse: `{
@@ -95,7 +96,7 @@ func TestListIncidentsSeverityFilter(t *testing.T) {
 			params: &ListIncidentsOptions{
 				PageSize: 50,
 				Status:   []string{"live", "triage"},
-				Severity: []string{"sev_1", "sev_2"},
+				SeverityOneOf: []string{"sev_1", "sev_2"},
 			},
 			expectedSeverityParam: []string{"sev_1", "sev_2"},
 			mockResponse: `{
@@ -127,7 +128,7 @@ func TestListIncidentsSeverityFilter(t *testing.T) {
 		{
 			name: "severity filter with auto-pagination",
 			params: &ListIncidentsOptions{
-				Severity: []string{"sev_3"},
+				SeverityOneOf: []string{"sev_3"},
 			},
 			expectedSeverityParam: []string{"sev_3"},
 			mockResponse: `{
@@ -184,9 +185,9 @@ func TestListIncidentsSeverityFilter(t *testing.T) {
 
 					// Verify status parameter if present
 					if tt.params != nil && len(tt.params.Status) > 0 {
-						statusValues := req.URL.Query()["status_category[one_of]"]
+						statusValues := req.URL.Query()["status[one_of]"]
 						if len(statusValues) != len(tt.params.Status) {
-							t.Errorf("expected %d status_category[one_of] values, got %d", len(tt.params.Status), len(statusValues))
+							t.Errorf("expected %d status[one_of] values, got %d", len(tt.params.Status), len(statusValues))
 						}
 					}
 
@@ -240,7 +241,7 @@ func TestListIncidentsSeverityFilterErrors(t *testing.T) {
 		{
 			name: "invalid severity ID returns API error",
 			params: &ListIncidentsOptions{
-				Severity: []string{"invalid_severity_id"},
+				SeverityOneOf: []string{"invalid_severity_id"},
 			},
 			mockResponse:   `{"type":"validation_error","status":422,"message":"Invalid severity ID"}`,
 			mockStatusCode: http.StatusUnprocessableEntity,
@@ -250,7 +251,7 @@ func TestListIncidentsSeverityFilterErrors(t *testing.T) {
 		{
 			name: "malformed severity ID",
 			params: &ListIncidentsOptions{
-				Severity: []string{"SEV-1"}, // Wrong format
+				SeverityOneOf: []string{"SEV-1"}, // Wrong format
 			},
 			mockResponse:   `{"type":"validation_error","status":422,"message":"Severity ID format invalid"}`,
 			mockStatusCode: http.StatusUnprocessableEntity,
@@ -261,7 +262,7 @@ func TestListIncidentsSeverityFilterErrors(t *testing.T) {
 			name: "empty severity returns all incidents",
 			params: &ListIncidentsOptions{
 				PageSize: 10,
-				Severity: []string{},
+				SeverityOneOf: []string{},
 			},
 			mockResponse: `{
 				"incidents": [
@@ -308,7 +309,7 @@ func TestListIncidentsSeverityFilterErrors(t *testing.T) {
 			if tt.wantError {
 				assertError(t, err)
 				if tt.errorContains != "" && err != nil {
-					if !contains(err.Error(), tt.errorContains) {
+					if !strings.Contains(err.Error(), tt.errorContains) {
 						t.Errorf("expected error to contain %q, got %q", tt.errorContains, err.Error())
 					}
 				}
@@ -324,7 +325,7 @@ func TestListIncidentsSeverityParameterMigration(t *testing.T) {
 	t.Run("verify severity[one_of] is used not severity", func(t *testing.T) {
 		params := &ListIncidentsOptions{
 			PageSize: 10,
-			Severity: []string{"sev_1", "sev_2"},
+			SeverityOneOf: []string{"sev_1", "sev_2"},
 		}
 
 		parameterUsed := false
@@ -362,10 +363,4 @@ func TestListIncidentsSeverityParameterMigration(t *testing.T) {
 			t.Error("Found deprecated 'severity' parameter, should only use 'severity[one_of]'")
 		}
 	})
-}
-
-// Helper function to check if string contains substring
-func contains(s, substr string) bool {
-	return len(s) >= len(substr) && s[:len(substr)] == substr ||
-		   (len(s) > len(substr) && contains(s[1:], substr))
 }
