@@ -98,12 +98,6 @@ if [ ! -z "$ALERT_ID" ]; then
     test_endpoint "GET" "/alerts/$ALERT_ID" "Get specific alert"
 fi
 
-# Test incident alerts endpoint
-test_endpoint "GET" "/incident_alerts?page_size=5" "List incident alerts"
-
-# Test follow-ups endpoint
-test_endpoint "GET" "/follow_ups" "List follow-ups"
-
 # Get first alert route ID for testing (if any exist)
 ROUTE_ID=$(curl -s -H "$HEADERS" "$API_BASE/alert_routes?page_size=1" | grep -o '"id":"[^"]*"' | head -1 | cut -d'"' -f4)
 if [ ! -z "$ROUTE_ID" ]; then
@@ -128,20 +122,6 @@ echo "-------------------------------"
 
 test_endpoint "GET" "/users?page_size=5" "List users"
 test_endpoint "GET" "/incident_roles" "List incident roles"
-
-# Test Custom Fields Endpoints
-echo -e "\n${YELLOW}6. Testing Custom Fields Endpoints${NC}"
-echo "-----------------------------------"
-
-test_endpoint "GET" "/custom_fields" "List custom fields"
-
-# Get first custom field ID for testing (if any exist)
-CUSTOM_FIELD_ID=$(curl -s -H "$HEADERS" "$API_BASE/custom_fields" | grep -o '"id":"[^"]*"' | head -1 | cut -d'"' -f4)
-if [ ! -z "$CUSTOM_FIELD_ID" ]; then
-    test_endpoint "GET" "/custom_fields/$CUSTOM_FIELD_ID" "Get specific custom field"
-fi
-
-test_endpoint "GET" "/custom_field_options" "List custom field options"
 
 echo -e "\n${YELLOW}Summary${NC}"
 echo "========"

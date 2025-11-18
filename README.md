@@ -5,7 +5,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Go Version](https://img.shields.io/badge/Go-1.21+-blue.svg)](https://go.dev/dl/)
 
-A GoLang implementation of an MCP (Model Context Protocol) server for incident.io, providing comprehensive tools to interact with the incident.io API. Built following industry-standard Go project layout patterns.
+A GoLang implementation of an MCP (Model Context Protocol) server for incident.io, providing tools to interact with the incident.io V2 API.
 
 > ⚠️ **Fair warning!** ⚠️  
 > This repository is largely vibe-coded and unsupported. Built by our CMO and an enterprising Solutions Engineer with questionable coding practices but undeniable enthusiasm. Use at your own risk! 🚀
@@ -28,13 +28,12 @@ go build -o bin/mcp-server ./cmd/mcp-server
 
 ## 📋 Features
 
-- ✅ Complete incident.io V2 API coverage including Custom Fields
+- ✅ Complete incident.io V2 API coverage
 - ✅ Workflow automation and management
 - ✅ Alert routing and event handling
 - ✅ Comprehensive test suite
 - ✅ MCP protocol compliant
-- ✅ Industry-standard Go project structure
-- ✅ Clean, layered architecture (client → handlers → server)
+- ✅ Clean, modular architecture
 
 ## 🤖 Using with Claude
 
@@ -83,16 +82,11 @@ Or, if you'd prefer to run everything in Docker:
 - `close_incident` - Close an incident with proper workflow
 - `create_incident_update` - Post status updates to incidents
 
-### Follow-up Management
-
-- `list_follow_ups` - List follow-ups with optional filters
-- `get_follow_up` - Get details of a specific follow-up
-
 ### Alert Management
 
 - `list_alerts` - List alerts with optional filters
 - `get_alert` - Get details of a specific alert
-- `list_incident_alerts` - List connections between incidents and alerts
+- `list_alerts_for_incident` - List alerts for an incident
 - `create_alert_event` - Create an alert event
 - `list_alert_routes` - List and manage alert routes
 
@@ -114,17 +108,6 @@ Or, if you'd prefer to run everything in Docker:
 - `list_catalog_entries` - List catalog entries
 - `update_catalog_entry` - Update catalog entries
 
-### Custom Fields
-
-- `list_custom_fields` - List all custom fields
-- `get_custom_field` - Get details of a specific custom field
-- `search_custom_fields` - Search for custom fields by name or type
-- `create_custom_field` - Create a new custom field
-- `update_custom_field` - Update custom field configuration
-- `delete_custom_field` - Delete a custom field
-- `list_custom_field_options` - List all custom field options
-- `create_custom_field_option` - Add a new option to a select field
-
 ## 📝 Example Usage
 
 ```bash
@@ -134,9 +117,6 @@ Or, if you'd prefer to run everything in Docker:
 "List alerts for incident INC-123"
 "Assign John Doe as incident lead for INC-456"
 "Update the Payments service catalog entry with new team information"
-"Show me all custom fields configured in incident.io"
-"Search for custom fields related to 'priority'"
-"Create a new custom field called 'Root Cause' with type single_select"
 ```
 
 ## 📚 Documentation
@@ -147,25 +127,6 @@ Or, if you'd prefer to run everything in Docker:
 - **[Testing Guide](docs/TESTING.md)** - Testing documentation and best practices
 - **[Deployment Guide](docs/DEPLOYMENT.md)** - Deployment instructions and considerations
 - **[Code of Conduct](docs/CODE_OF_CONDUCT.md)** - Community guidelines and standards
-
-## 🏗️ Project Structure
-
-This project follows industry-standard Go project layout:
-
-```
-├── cmd/mcp-server/       # Main application entry point
-├── internal/
-│   ├── client/           # incident.io API client (HTTP layer)
-│   ├── handlers/         # MCP protocol handlers (adapter layer)
-│   └── server/           # MCP server orchestration
-├── pkg/mcp/              # Public MCP types
-└── docs/                 # Documentation
-```
-
-**Design Philosophy:**
-- **`internal/client`**: Pure HTTP API client for incident.io - reusable, testable
-- **`internal/handlers`**: MCP protocol adapters - converts MCP requests to API calls
-- **`internal/server`**: MCP server that orchestrates handlers and manages the protocol
 
 ## 🔧 Troubleshooting
 

@@ -22,7 +22,7 @@ test-api:
 
 test-unit:
 	@echo "Running unit tests..."
-	go test -v ./internal/client/...
+	go test -v ./internal/incidentio/...
 
 test-integration: test-unit build test-api
 	@echo "All integration tests completed!"

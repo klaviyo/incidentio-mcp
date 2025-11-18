@@ -13,7 +13,7 @@ make test-unit
 
 Or run Go tests directly:
 ```bash
-go test -v ./internal/client/...
+go test -v ./internal/incidentio/...
 ```
 
 ### API Integration Tests
@@ -98,7 +98,7 @@ Common test utilities in `client_test.go`:
 
 When adding new endpoints:
 
-1. Create a test file: `internal/client/{endpoint}_test.go`
+1. Create a test file: `internal/incidentio/{endpoint}_test.go`
 2. Test all CRUD operations with:
    - Success cases
    - Error cases (404, 500, etc.)
@@ -170,12 +170,12 @@ func TestListResources(t *testing.T) {
 
 Run a single test:
 ```bash
-go test -v -run TestListWorkflows ./internal/client/
+go test -v -run TestListWorkflows ./internal/incidentio/
 ```
 
 Run tests for one package:
 ```bash
-go test -v ./internal/client/
+go test -v ./internal/incidentio/
 ```
 
 ## CI/CD Integration

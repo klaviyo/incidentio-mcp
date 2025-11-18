@@ -11,7 +11,7 @@
 
 # Testing Commands
 - Run tests: `go test ./...`
-- Run specific package tests: `go test ./internal/client/...`
+- Run specific package tests: `go test ./internal/incidentio/...`
 - Lint code: `golangci-lint run` (if available)
 - Format code: `go fmt ./...`
 
@@ -22,8 +22,8 @@
 
 # Project Structure
 - `/cmd/` - Entry points for different server configurations
-- `/internal/client/` - incident.io API client implementation
-- `/internal/handlers/` - MCP tool implementations
+- `/internal/incidentio/` - incident.io API client implementation
+- `/internal/tools/` - MCP tool implementations
 - `/internal/server/` - MCP server logic
 
 # Environment Variables
