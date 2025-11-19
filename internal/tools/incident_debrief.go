@@ -23,7 +23,26 @@ func (t *GetIncidentDebriefTool) Name() string {
 func (t *GetIncidentDebriefTool) Description() string {
 	return `Get the debrief/post-mortem document information for a specific incident.
 
-IMPORTANT: This tool checks if an incident has a debrief document and returns the postmortem_document_url if available.
+CRITICAL LIMITATION - INTERNAL DEBRIEFS:
+incident.io supports TWO types of post-mortems/debriefs:
+1. INTERNAL: Written directly in the incident.io UI (not accessible via API)
+2. EXTERNAL: Written in or exported to Confluence, Notion, Google Docs, etc. (accessible via API)
+
+This tool can ONLY retrieve debriefs that have been exported to external platforms.
+If has_debrief=true but no postmortem_document_url is returned, the debrief is internal-only.
+
+TO ACCESS INTERNAL DEBRIEFS:
+You must export them via the incident.io UI first:
+1. Navigate to the incident page in incident.io
+2. Go to the "Post-incident" or "Debrief" tab
+3. Click "Export" button
+4. Choose destination (Confluence, Notion, Google Docs)
+5. IMPORTANT: Once exported, the post-mortem will be moved to the destination and
+   no longer be editable within incident.io
+
+After export, the postmortem_document_url field will be populated in the API response.
+
+POSTMORTEM URL LOCATIONS:
 The tool checks multiple locations for the postmortem URL:
 1. Top-level postmortem_document_url field
 2. retrospective_incident_options.postmortem_document_url (nested object for retrospective incidents)
@@ -41,7 +60,8 @@ USAGE WORKFLOW:
 2. Call this tool with the identifier (supports ID, reference, Slack channel ID/name)
 3. Tool automatically resolves the identifier to the incident ID
 4. Tool checks if the incident has a debrief document
-5. If available, returns the incident details including postmortem_document_url
+5. If available and exported, returns the incident details including postmortem_document_url
+6. If has_debrief=true but no URL, you need to export it via the UI first
 
 PARAMETERS:
 - incident_id: Required. Can be any of these formats:
@@ -59,11 +79,13 @@ EXAMPLES:
 ERROR HANDLING:
 - Returns an error if the incident doesn't have a debrief document yet
 - Returns an error if the incident has a debrief but no postmortem_document_url is available
-- Returns helpful error messages to guide users
+  (means it's an internal debrief that needs to be exported first)
+- Returns helpful error messages with actionable next steps
 
 NOTES:
 - The postmortem_document_url can be used to download the debrief document
 - Check the has_debrief field to verify if a debrief is available
+- Use debug_incident tool to see raw API response and diagnose field availability
 - Use get_incident tool if you need all incident details, not just debrief information`
 }
 

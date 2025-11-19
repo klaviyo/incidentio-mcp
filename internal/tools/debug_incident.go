@@ -26,13 +26,24 @@ func (t *DebugIncidentTool) Description() string {
 This is a diagnostic tool to help understand what fields the incident.io API is actually returning.
 Use this when troubleshooting issues with missing fields or unexpected data structures.
 
+IMPORTANT - INTERNAL DEBRIEF LIMITATION:
+If has_debrief=true but no postmortem_document_url fields are present, the debrief is stored
+internally in incident.io and has NOT been exported. Internal debriefs are NOT accessible via API.
+
+To access internal debriefs, you must export them via the UI first:
+1. Visit the incident page in incident.io
+2. Go to "Post-incident" or "Debrief" tab
+3. Click "Export" to Confluence, Notion, or Google Docs
+4. WARNING: Export will MOVE the debrief and make it no longer editable in incident.io
+
 USAGE:
 - incident_id: The incident ID, reference (INC-123 or 123), Slack channel ID, or channel name
 
 RETURNS:
 - Complete JSON dump of all incident fields
-- Highlights debrief-related fields if present
-- Shows field presence/absence explicitly
+- Diagnostic summary highlighting debrief-related fields
+- Field presence/absence analysis
+- Actionable guidance if fields are missing
 
 EXAMPLES:
 - {"incident_id": "1565"}
@@ -42,6 +53,7 @@ This tool is useful for:
 - Debugging missing postmortem_document_url issues
 - Understanding API response structure
 - Verifying which optional fields are populated
+- Determining if a debrief is internal (needs export) or external (has URL)
 - Comparing expected vs actual field names`
 }
 

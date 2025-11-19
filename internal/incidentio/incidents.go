@@ -321,11 +321,11 @@ func (c *Client) GetIncidentDebrief(id string) (*Incident, error) {
 
 	// If still no URL found but has debrief_export_id, note it in the response
 	if postmortemURL == "" && incident.DebriefExportID != "" {
-		return nil, fmt.Errorf("incident %s has a debrief (debrief_export_id: %s) but no postmortem_document_url is available. The debrief may need to be exported first, or may be accessible via the incident.io UI at: %s", id, incident.DebriefExportID, incident.Permalink)
+		return nil, fmt.Errorf("incident %s has a debrief (debrief_export_id: %s) but no postmortem_document_url is available. This indicates an internal debrief that needs to be exported. Visit %s and follow the export process to make it accessible via API. WARNING: Export will MOVE the debrief to the external platform and it will no longer be editable in incident.io", id, incident.DebriefExportID, incident.Permalink)
 	}
 
 	if postmortemURL == "" {
-		return nil, fmt.Errorf("incident %s has a debrief but no postmortem_document_url is available. The debrief may be accessible via the incident.io UI at: %s. Note: incident.io debriefs created through the UI may not expose a document URL via the API. You may need to manually export the debrief or use a different API endpoint", id, incident.Permalink)
+		return nil, fmt.Errorf("incident %s has an internal debrief that has not been exported yet. Internal debriefs written in the incident.io UI are not accessible via the API. To access this debrief:\n\n1. Visit the incident UI: %s\n2. Navigate to the 'Post-incident' or 'Debrief' tab\n3. Click 'Export' and choose a destination (Confluence, Notion, Google Docs)\n4. WARNING: Once exported, the post-mortem will be MOVED to the destination and no longer editable in incident.io\n5. After export, the postmortem_document_url field will be populated in the API\n\nAlternatively, use the debug_incident tool to see the full API response", id, incident.Permalink)
 	}
 
 	return incident, nil

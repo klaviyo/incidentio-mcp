@@ -569,7 +569,7 @@ func TestGetIncidentDebrief(t *testing.T) {
 			}`,
 			mockStatusCode: http.StatusOK,
 			wantError:      true,
-			expectedError:  "no postmortem_document_url is available",
+			expectedError:  "internal debrief that has not been exported",
 		},
 		{
 			name:           "incident not found",
