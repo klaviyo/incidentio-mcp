@@ -22,6 +22,7 @@ type Incident struct {
 	IncidentRoleAssignments []RoleAssignment   `json:"incident_role_assignments"`
 	CustomFieldEntries      []CustomFieldEntry `json:"custom_field_entries"`
 	HasDebrief              bool               `json:"has_debrief"`
+	PostmortemDocumentURL   string             `json:"postmortem_document_url,omitempty"`
 }
 
 // IncidentStatus represents the status of an incident

@@ -67,6 +67,7 @@ func (s *Server) registerTools() {
 	// Register Incident tools
 	s.tools["list_incidents"] = tools.NewListIncidentsTool(client)
 	s.tools["get_incident"] = tools.NewGetIncidentTool(client)
+	s.tools["get_incident_debrief"] = tools.NewGetIncidentDebriefTool(client)
 	s.tools["create_incident"] = tools.NewCreateIncidentTool(client)
 	s.tools["create_incident_smart"] = tools.NewCreateIncidentEnhancedTool(client)
 	s.tools["update_incident"] = tools.NewUpdateIncidentTool(client)

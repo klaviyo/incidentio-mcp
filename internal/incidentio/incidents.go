@@ -291,3 +291,22 @@ func (c *Client) AssignIncidentRole(incidentID string, req *AssignIncidentRoleRe
 
 	return &response.Incident, nil
 }
+
+// GetIncidentDebrief retrieves the debrief/post-mortem document for an incident
+// Returns the incident details with has_debrief status and postmortem_document_url if available
+func (c *Client) GetIncidentDebrief(id string) (*Incident, error) {
+	incident, err := c.GetIncident(id)
+	if err != nil {
+		return nil, err
+	}
+
+	if !incident.HasDebrief {
+		return nil, fmt.Errorf("incident %s does not have a debrief document yet", id)
+	}
+
+	if incident.PostmortemDocumentURL == "" {
+		return nil, fmt.Errorf("incident %s has a debrief but no postmortem_document_url is available", id)
+	}
+
+	return incident, nil
+}

@@ -51,6 +51,7 @@ func (s *MCPServer) registerTools() {
 	// Register all incident.io tools
 	s.tools["list_incidents"] = tools.NewListIncidentsTool(client)
 	s.tools["get_incident"] = tools.NewGetIncidentTool(client)
+	s.tools["get_incident_debrief"] = tools.NewGetIncidentDebriefTool(client)
 	s.tools["create_incident"] = tools.NewCreateIncidentTool(client)
 	s.tools["update_incident"] = tools.NewUpdateIncidentTool(client)
 	s.tools["close_incident"] = tools.NewCloseIncidentTool(client)
