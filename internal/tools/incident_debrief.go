@@ -3,9 +3,6 @@ package tools
 import (
 	"encoding/json"
 	"fmt"
-	"io"
-	"net/http"
-	"regexp"
 
 	"github.com/incident-io/incidentio-mcp-golang/internal/incidentio"
 )
@@ -24,13 +21,7 @@ func (t *GetIncidentDebriefTool) Name() string {
 }
 
 func (t *GetIncidentDebriefTool) Description() string {
-	return `Get the debrief/post-mortem document information and content for a specific incident.
-
-DOCUMENT CONTENT RETRIEVAL:
-When a postmortem_document_url is available (exported debriefs), this tool will automatically
-attempt to fetch and include the document content in the response. Supported platforms:
-- Google Docs (fetches as plain text via export URL)
-- Other URLs (attempts to fetch HTML content)
+	return `Get the debrief/post-mortem document information for a specific incident.
 
 CRITICAL LIMITATION - INTERNAL DEBRIEFS:
 incident.io supports TWO types of post-mortems/debriefs:
@@ -78,7 +69,6 @@ PARAMETERS:
   * Incident reference: "INC-123" or "123"
   * Slack channel ID: "C123456789"
   * Slack channel name: "20251020-aws-outage-ci-impaired"
-- include_content: Optional boolean (default: true). Set to false to skip document content fetching
 
 EXAMPLES:
 - Get by full ID: {"incident_id": "01HXYZ..."}
@@ -105,12 +95,7 @@ func (t *GetIncidentDebriefTool) InputSchema() map[string]interface{} {
 		"properties": map[string]interface{}{
 			"incident_id": map[string]interface{}{
 				"type":        "string",
-				"description": "Incident identifier in any of these formats: full ID (01FDAG4SAP5TYPT98WGR2N7), reference (INC-123 or 123), Slack channel ID (C123456789), or Slack channel name (20251107-machine-zitadel-high-cpu). Tool automatically resolves to incident ID.",
-			},
-			"include_content": map[string]interface{}{
-				"type":        "boolean",
-				"description": "Whether to fetch and include the document content (default: true). Set to false to only get metadata.",
-				"default":     true,
+				"description": "Incident identifier in any of these formats: full ID (01FDAG4SAP5TYPT98WGR2N7), reference (INC-123 or 123), Slack channel ID (C123456789), or Slack channel name (20251020-aws-outage-ci-impaired). Tool automatically resolves to incident ID.",
 			},
 		},
 		"required":             []interface{}{"incident_id"},
@@ -174,77 +159,10 @@ func (t *GetIncidentDebriefTool) Execute(args map[string]interface{}) (string, e
 		response["mode"] = incident.Mode
 	}
 
-	// Check if we should fetch document content
-	includeContent := true
-	if includeContentArg, ok := args["include_content"].(bool); ok {
-		includeContent = includeContentArg
-	}
-
-	// Fetch document content if URL is available and content is requested
-	if includeContent && postmortemURL != "" {
-		content, fetchErr := fetchDocumentContent(postmortemURL)
-		if fetchErr != nil {
-			// Don't fail the entire request if content fetch fails
-			response["content_fetch_error"] = fetchErr.Error()
-			response["content_note"] = "Document URL is available but content could not be fetched automatically"
-		} else {
-			response["document_content"] = content
-			response["content_length"] = len(content)
-		}
-	}
-
 	result, err := json.MarshalIndent(response, "", "  ")
 	if err != nil {
 		return "", fmt.Errorf("failed to format response: %w", err)
 	}
 
 	return string(result), nil
-}
-
-// fetchDocumentContent attempts to fetch the content from a document URL
-func fetchDocumentContent(docURL string) (string, error) {
-	// Try to convert Google Docs URLs to export format
-	exportURL := convertToExportURL(docURL)
-
-	client := &http.Client{}
-	req, err := http.NewRequest("GET", exportURL, nil)
-	if err != nil {
-		return "", fmt.Errorf("failed to create request: %w", err)
-	}
-
-	// Set user agent to avoid potential blocking
-	req.Header.Set("User-Agent", "incidentio-mcp-server/1.0")
-
-	resp, err := client.Do(req)
-	if err != nil {
-		return "", fmt.Errorf("failed to fetch document: %w", err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("document fetch returned status %d", resp.StatusCode)
-	}
-
-	// Read the content
-	content, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return "", fmt.Errorf("failed to read document content: %w", err)
-	}
-
-	return string(content), nil
-}
-
-// convertToExportURL converts various document URLs to their export/plain text formats
-func convertToExportURL(docURL string) string {
-	// Google Docs: convert to plain text export
-	// Format: https://docs.google.com/document/d/{id}/edit -> https://docs.google.com/document/d/{id}/export?format=txt
-	// Also handles format without /edit suffix
-	googleDocsRegex := regexp.MustCompile(`https://docs\.google\.com/document/d/([a-zA-Z0-9_-]+)`)
-	if matches := googleDocsRegex.FindStringSubmatch(docURL); len(matches) > 1 {
-		docID := matches[1]
-		return fmt.Sprintf("https://docs.google.com/document/d/%s/export?format=txt", docID)
-	}
-
-	// For other URLs, return as-is and let the HTTP client handle it
-	return docURL
 }
