@@ -24,6 +24,10 @@ func (t *GetIncidentDebriefTool) Description() string {
 	return `Get the debrief/post-mortem document information for a specific incident.
 
 IMPORTANT: This tool checks if an incident has a debrief document and returns the postmortem_document_url if available.
+The tool checks multiple locations for the postmortem URL:
+1. Top-level postmortem_document_url field
+2. retrospective_incident_options.postmortem_document_url (nested object for retrospective incidents)
+3. debrief_export_id field (indicates debrief exists but may need export)
 
 IDENTIFIER FORMATS SUPPORTED:
 This tool accepts multiple identifier formats for flexible incident lookup:
@@ -100,14 +104,37 @@ func (t *GetIncidentDebriefTool) Execute(args map[string]interface{}) (string, e
 		return "", err
 	}
 
+	// Determine where the postmortem URL is located
+	postmortemURL := incident.PostmortemDocumentURL
+	urlLocation := "top_level"
+
+	// Check if URL is in nested retrospective options
+	if postmortemURL == "" && incident.RetrospectiveIncidentOptions != nil {
+		postmortemURL = incident.RetrospectiveIncidentOptions.PostmortemDocumentURL
+		if postmortemURL != "" {
+			urlLocation = "retrospective_incident_options"
+		}
+	}
+
 	// Format the response with relevant debrief information
 	response := map[string]interface{}{
 		"incident_id":             incident.ID,
 		"incident_reference":      incident.Reference,
 		"incident_name":           incident.Name,
 		"has_debrief":             incident.HasDebrief,
-		"postmortem_document_url": incident.PostmortemDocumentURL,
+		"postmortem_document_url": postmortemURL,
+		"url_location":            urlLocation,
 		"permalink":               incident.Permalink,
+	}
+
+	// Include debrief_export_id if available
+	if incident.DebriefExportID != "" {
+		response["debrief_export_id"] = incident.DebriefExportID
+	}
+
+	// Include mode if set
+	if incident.Mode != "" {
+		response["mode"] = incident.Mode
 	}
 
 	result, err := json.MarshalIndent(response, "", "  ")

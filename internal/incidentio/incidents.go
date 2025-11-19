@@ -294,6 +294,10 @@ func (c *Client) AssignIncidentRole(incidentID string, req *AssignIncidentRoleRe
 
 // GetIncidentDebrief retrieves the debrief/post-mortem document for an incident
 // Returns the incident details with has_debrief status and postmortem_document_url if available
+// Checks multiple possible locations for the postmortem URL:
+// 1. Top-level postmortem_document_url field
+// 2. retrospective_incident_options.postmortem_document_url (nested)
+// 3. debrief_export_id field (if present)
 func (c *Client) GetIncidentDebrief(id string) (*Incident, error) {
 	incident, err := c.GetIncident(id)
 	if err != nil {
@@ -304,8 +308,21 @@ func (c *Client) GetIncidentDebrief(id string) (*Incident, error) {
 		return nil, fmt.Errorf("incident %s does not have a debrief document yet", id)
 	}
 
-	if incident.PostmortemDocumentURL == "" {
-		return nil, fmt.Errorf("incident %s has a debrief but no postmortem_document_url is available", id)
+	// Check for postmortem URL in multiple possible locations
+	postmortemURL := incident.PostmortemDocumentURL
+
+	// If not at top level, check nested retrospective_incident_options
+	if postmortemURL == "" && incident.RetrospectiveIncidentOptions != nil {
+		postmortemURL = incident.RetrospectiveIncidentOptions.PostmortemDocumentURL
+	}
+
+	// If still no URL found but has debrief_export_id, note it in the response
+	if postmortemURL == "" && incident.DebriefExportID != "" {
+		return nil, fmt.Errorf("incident %s has a debrief (debrief_export_id: %s) but no postmortem_document_url is available. The debrief may need to be exported first", id, incident.DebriefExportID)
+	}
+
+	if postmortemURL == "" {
+		return nil, fmt.Errorf("incident %s has a debrief but no postmortem_document_url is available. This may indicate the debrief document hasn't been created yet or is stored in a format not accessible via the API", id)
 	}
 
 	return incident, nil

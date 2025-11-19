@@ -4,25 +4,27 @@ import "time"
 
 // Incident represents an incident in incident.io
 type Incident struct {
-	ID                      string             `json:"id"`
-	Reference               string             `json:"reference"`
-	Name                    string             `json:"name"`
-	Summary                 string             `json:"summary,omitempty"`
-	Permalink               string             `json:"permalink"`
-	IncidentStatus          IncidentStatus     `json:"incident_status"`
-	Severity                Severity           `json:"severity"`
-	IncidentType            IncidentType       `json:"incident_type"`
-	Mode                    string             `json:"mode"`
-	Visibility              string             `json:"visibility"`
-	CreatedAt               time.Time          `json:"created_at"`
-	UpdatedAt               time.Time          `json:"updated_at"`
-	SlackTeamID             string             `json:"slack_team_id,omitempty"`
-	SlackChannelID          string             `json:"slack_channel_id,omitempty"`
-	SlackChannelName        string             `json:"slack_channel_name,omitempty"`
-	IncidentRoleAssignments []RoleAssignment   `json:"incident_role_assignments"`
-	CustomFieldEntries      []CustomFieldEntry `json:"custom_field_entries"`
-	HasDebrief              bool               `json:"has_debrief"`
-	PostmortemDocumentURL   string             `json:"postmortem_document_url,omitempty"`
+	ID                           string                              `json:"id"`
+	Reference                    string                              `json:"reference"`
+	Name                         string                              `json:"name"`
+	Summary                      string                              `json:"summary,omitempty"`
+	Permalink                    string                              `json:"permalink"`
+	IncidentStatus               IncidentStatus                      `json:"incident_status"`
+	Severity                     Severity                            `json:"severity"`
+	IncidentType                 IncidentType                        `json:"incident_type"`
+	Mode                         string                              `json:"mode"`
+	Visibility                   string                              `json:"visibility"`
+	CreatedAt                    time.Time                           `json:"created_at"`
+	UpdatedAt                    time.Time                           `json:"updated_at"`
+	SlackTeamID                  string                              `json:"slack_team_id,omitempty"`
+	SlackChannelID               string                              `json:"slack_channel_id,omitempty"`
+	SlackChannelName             string                              `json:"slack_channel_name,omitempty"`
+	IncidentRoleAssignments      []RoleAssignment                    `json:"incident_role_assignments"`
+	CustomFieldEntries           []CustomFieldEntry                  `json:"custom_field_entries"`
+	HasDebrief                   bool                                `json:"has_debrief"`
+	PostmortemDocumentURL        string                              `json:"postmortem_document_url,omitempty"`
+	RetrospectiveIncidentOptions *RetrospectiveIncidentOptionsResponse `json:"retrospective_incident_options,omitempty"`
+	DebriefExportID              string                              `json:"debrief_export_id,omitempty"`
 }
 
 // IncidentStatus represents the status of an incident
@@ -180,6 +182,13 @@ type AlertEvent struct {
 
 // RetrospectiveIncidentOptionsRequest represents retrospective options for an incident
 type RetrospectiveIncidentOptionsRequest struct {
+	ExternalID            int64  `json:"external_id,omitempty"`
+	PostmortemDocumentURL string `json:"postmortem_document_url,omitempty"`
+	SlackChannelID        string `json:"slack_channel_id,omitempty"`
+}
+
+// RetrospectiveIncidentOptionsResponse represents retrospective options in incident response
+type RetrospectiveIncidentOptionsResponse struct {
 	ExternalID            int64  `json:"external_id,omitempty"`
 	PostmortemDocumentURL string `json:"postmortem_document_url,omitempty"`
 	SlackChannelID        string `json:"slack_channel_id,omitempty"`
