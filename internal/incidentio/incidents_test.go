@@ -485,3 +485,174 @@ func TestUpdateIncident(t *testing.T) {
 		})
 	}
 }
+func TestGetIncidentDebrief(t *testing.T) {
+	tests := []struct {
+		name           string
+		incidentID     string
+		mockResponse   string
+		mockStatusCode int
+		wantError      bool
+		expectedError  string
+	}{
+		{
+			name:       "successful get incident with debrief",
+			incidentID: "inc_123",
+			mockResponse: `{
+				"incident": {
+					"id": "inc_123",
+					"reference": "INC-123",
+					"name": "Database outage",
+					"summary": "Primary database cluster experienced connectivity issues",
+					"has_debrief": true,
+					"postmortem_document_url": "https://docs.example.com/postmortem/inc-123",
+					"incident_status": {
+						"id": "status_closed",
+						"name": "Closed"
+					},
+					"severity": {
+						"id": "sev_1",
+						"name": "Critical"
+					},
+					"created_at": "2024-01-01T00:00:00Z",
+					"updated_at": "2024-01-15T10:00:00Z"
+				}
+			}`,
+			mockStatusCode: http.StatusOK,
+			wantError:      false,
+		},
+		{
+			name:       "incident without debrief",
+			incidentID: "inc_456",
+			mockResponse: `{
+				"incident": {
+					"id": "inc_456",
+					"reference": "INC-456",
+					"name": "API performance issue",
+					"has_debrief": false,
+					"incident_status": {
+						"id": "status_active",
+						"name": "Active"
+					},
+					"severity": {
+						"id": "sev_2",
+						"name": "High"
+					},
+					"created_at": "2024-01-10T00:00:00Z",
+					"updated_at": "2024-01-10T05:00:00Z"
+				}
+			}`,
+			mockStatusCode: http.StatusOK,
+			wantError:      true,
+			expectedError:  "does not have a debrief document yet",
+		},
+		{
+			name:       "incident with debrief but no URL",
+			incidentID: "inc_789",
+			mockResponse: `{
+				"incident": {
+					"id": "inc_789",
+					"reference": "INC-789",
+					"name": "Network connectivity issue",
+					"has_debrief": true,
+					"postmortem_document_url": "",
+					"incident_status": {
+						"id": "status_closed",
+						"name": "Closed"
+					},
+					"severity": {
+						"id": "sev_3",
+						"name": "Medium"
+					},
+					"created_at": "2024-01-05T00:00:00Z",
+					"updated_at": "2024-01-08T15:00:00Z"
+				}
+			}`,
+			mockStatusCode: http.StatusOK,
+			wantError:      true,
+			expectedError:  "internal debrief that has not been exported",
+		},
+		{
+			name:           "incident not found",
+			incidentID:     "inc_nonexistent",
+			mockResponse:   `{"error": {"message": "Incident not found", "code": "not_found"}}`,
+			mockStatusCode: http.StatusNotFound,
+			wantError:      true,
+			expectedError:  "Incident not found",
+		},
+		{
+			name:       "retrospective incident with debrief",
+			incidentID: "inc_retro",
+			mockResponse: `{
+				"incident": {
+					"id": "inc_retro",
+					"reference": "INC-999",
+					"name": "Historical security incident",
+					"summary": "Retrospective analysis of past security breach",
+					"mode": "retrospective",
+					"has_debrief": true,
+					"postmortem_document_url": "https://docs.example.com/postmortem/retro-inc-999",
+					"incident_status": {
+						"id": "status_closed",
+						"name": "Closed"
+					},
+					"severity": {
+						"id": "sev_1",
+						"name": "Critical"
+					},
+					"created_at": "2024-01-01T00:00:00Z",
+					"updated_at": "2024-01-20T12:00:00Z"
+				}
+			}`,
+			mockStatusCode: http.StatusOK,
+			wantError:      false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockClient := &MockHTTPClient{
+				DoFunc: func(req *http.Request) (*http.Response, error) {
+					assertEqual(t, "GET", req.Method)
+					assertEqual(t, "/incidents/"+tt.incidentID, req.URL.Path)
+					assertEqual(t, "Bearer test-api-key", req.Header.Get("Authorization"))
+					return mockResponse(tt.mockStatusCode, tt.mockResponse), nil
+				},
+			}
+
+			client := NewTestClient(mockClient)
+			incident, err := client.GetIncidentDebrief(tt.incidentID)
+
+			if tt.wantError {
+				assertError(t, err)
+				if tt.expectedError != "" {
+					if err == nil || !contains(err.Error(), tt.expectedError) {
+						t.Errorf("expected error containing %q, got: %v", tt.expectedError, err)
+					}
+				}
+				return
+			}
+
+			assertNoError(t, err)
+			assertEqual(t, tt.incidentID, incident.ID)
+			
+			// Verify debrief-specific fields
+			if !incident.HasDebrief {
+				t.Error("expected incident to have debrief")
+			}
+			if incident.PostmortemDocumentURL == "" {
+				t.Error("expected postmortem_document_url to be non-empty")
+			}
+			
+			// Verify specific scenarios
+			switch tt.name {
+			case "successful get incident with debrief":
+				assertEqual(t, "INC-123", incident.Reference)
+				assertEqual(t, "Database outage", incident.Name)
+				assertEqual(t, "https://docs.example.com/postmortem/inc-123", incident.PostmortemDocumentURL)
+			case "retrospective incident with debrief":
+				assertEqual(t, "retrospective", incident.Mode)
+				assertEqual(t, "https://docs.example.com/postmortem/retro-inc-999", incident.PostmortemDocumentURL)
+			}
+		})
+	}
+}

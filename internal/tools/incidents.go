@@ -494,7 +494,7 @@ func (t *GetIncidentTool) Execute(args map[string]interface{}) (string, error) {
 	}
 
 	// Resolve identifier to actual incident ID if needed
-	incidentID, err := t.resolveIncidentIdentifier(identifier)
+	incidentID, err := t.ResolveIncidentIdentifier(identifier)
 	if err != nil {
 		return "", err
 	}
@@ -509,10 +509,10 @@ func (t *GetIncidentTool) Execute(args map[string]interface{}) (string, error) {
 	return FilterFields(incident, fieldsStr)
 }
 
-// resolveIncidentIdentifier resolves various identifier formats to an incident ID
+// ResolveIncidentIdentifier resolves various identifier formats to an incident ID
 // Supports: incident ID (01FDAG4SAP5TYPT98WGR2N7), reference (INC-123 or just 123),
 // Slack channel ID (C123456789), or Slack channel name (20251020-aws-outage-ci-impaired)
-func (t *GetIncidentTool) resolveIncidentIdentifier(identifier string) (string, error) {
+func (t *GetIncidentTool) ResolveIncidentIdentifier(identifier string) (string, error) {
 	// Check if it's already a full incident ID (starts with 01 and is alphanumeric)
 	if strings.HasPrefix(identifier, "01") && len(identifier) > 20 {
 		return identifier, nil
